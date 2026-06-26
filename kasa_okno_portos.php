@@ -50,11 +50,11 @@
             }
 
             echo '<div style="font-family: monospace; font-size: 12px; border:1px solid #666; background:' . $bg . '; margin:5px 0; padding:6px;">';
-            echo '<b>[PORTOS DIAG][' . htmlspecialchars($type, ENT_QUOTES, 'cp-1250') . ']</b> ';
-            echo htmlspecialchars($message, ENT_QUOTES, 'cp-1250');
+            echo '<b>[PORTOS DIAG][' . htmlspecialchars($type, ENT_QUOTES, 'Windows-1250') . ']</b> ';
+            echo htmlspecialchars($message, ENT_QUOTES, 'Windows-1250');
             if (!empty($context)) {
                 echo '<pre style="margin:6px 0 0 0;">';
-                echo htmlspecialchars(print_r($context, true), ENT_QUOTES, 'cp-1250');
+                echo htmlspecialchars(print_r($context, true), ENT_QUOTES, 'Windows-1250');
                 echo '</pre>';
             }
             echo '</div>';

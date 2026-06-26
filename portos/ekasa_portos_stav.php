@@ -9,7 +9,7 @@
       $response_json = callAPI('GET', $function_url, $data_array);
       $response  = json_decode($response_json, true);
       $stav_tlaciaren   = (is_array($response) && isset($response['state'])) ? $response['state'] : 'Unknown';
-      $chyba_tlaciaren = (is_array($response) && isset($response['error']['message'])) ? $response['error']['message'] : '';
+      $chyba_tlaciaren = (is_array($response) && isset($response['error']['message'])) ? iconv('UTF-8', 'Windows-1250//TRANSLIT', $response['error']['message']) : '';
     // VOLANIE API
     // stav spojenia s ekasa 
       $function_url = 'connectivity/status';
@@ -17,7 +17,7 @@
       $response_json = callAPI('GET', $function_url, $data_array);
       $response  = json_decode($response_json, true);
       $stav_spojenia   = (is_array($response) && isset($response['state'])) ? $response['state'] : 'Unknown';
-      $chyba_spojenie = (is_array($response) && isset($response['error']['message'])) ? $response['error']['message'] : '';
+      $chyba_spojenie = (is_array($response) && isset($response['error']['message'])) ? iconv('UTF-8', 'Windows-1250//TRANSLIT', $response['error']['message']) : '';
    // spracovanie v�stupov do hl�sen� stavu   
                         $systemovy_stav ="";
                         if ($stav_spojenia=="Down") {
@@ -46,13 +46,13 @@
                                 $hlasenie .="<br />Stav tla�iarne: ".$stav_tlaciaren;                                
                         }      
                         if ($chyba_spojenie != '') {
-                                $hlasenie .="<br />Detail spojenia: ".htmlspecialchars($chyba_spojenie, ENT_QUOTES, 'cp-1250');
+                                $hlasenie .="<br />Detail spojenia: ".htmlspecialchars($chyba_spojenie, ENT_QUOTES, 'Windows-1250');
                         }
                         if ($chyba_tlaciaren != '') {
-                                $hlasenie .="<br />Detail tla�iarne: ".htmlspecialchars($chyba_tlaciaren, ENT_QUOTES, 'cp-1250');
+                                $hlasenie .="<br />Detail tla�iarne: ".htmlspecialchars($chyba_tlaciaren, ENT_QUOTES, 'Windows-1250');
                         }
                         if (isset($GLOBALS['portos_ip_warning']) && $GLOBALS['portos_ip_warning'] != '') {
-                                $hlasenie .="<br /><b>Upozornenie:</b> ".htmlspecialchars($GLOBALS['portos_ip_warning'], ENT_QUOTES, 'cp-1250');
+                                $hlasenie .="<br /><b>Upozornenie:</b> ".htmlspecialchars($GLOBALS['portos_ip_warning'], ENT_QUOTES, 'Windows-1250');
                         }
       
 ?>
