@@ -8,7 +8,40 @@
             header('Content-Type: text/html; charset=cp-1250');
         }
 
+        $portos_diag_enabled = (isset($_GET['diag']) && $_GET['diag'] === '1') || (isset($_POST['diag']) && $_POST['diag'] === '1');
+
+        function portos_diag_sanitize($data) {
+            if (!is_array($data)) {
+                return $data;
+            }
+
+            $sensitive_keys = array('password', 'pass', 'token', 'secret', 'key', 'apikey', 'api_key', 'auth');
+            $clean = array();
+            foreach ($data as $key => $value) {
+                $key_l = strtolower((string)$key);
+                $is_sensitive = false;
+                foreach ($sensitive_keys as $sensitive_key) {
+                    if (strpos($key_l, $sensitive_key) !== false) {
+                        $is_sensitive = true;
+                        break;
+                    }
+                }
+
+                if ($is_sensitive) {
+                    $clean[$key] = '[REDACTED]';
+                } else {
+                    $clean[$key] = is_array($value) ? portos_diag_sanitize($value) : $value;
+                }
+            }
+
+            return $clean;
+        }
+
         function portos_diag($message, $context = array(), $type = 'INFO') {
+            if (!isset($GLOBALS['portos_diag_enabled']) || !$GLOBALS['portos_diag_enabled']) {
+                return;
+            }
+
             $bg = '#eef';
             if ($type === 'ERROR') {
                 $bg = '#fdd';
@@ -53,16 +86,18 @@
             }
         }
 
-        set_error_handler('portos_diag_error_handler');
-        set_exception_handler('portos_diag_exception_handler');
-        register_shutdown_function('portos_diag_shutdown_handler');
+        if ($portos_diag_enabled) {
+            set_error_handler('portos_diag_error_handler');
+            set_exception_handler('portos_diag_exception_handler');
+            register_shutdown_function('portos_diag_shutdown_handler');
+        }
         portos_diag('Spustenie kasa_okno_portos.php', array(
             'time' => date('Y-m-d H:i:s'),
             'php_version' => phpversion(),
             'request_method' => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'N/A',
             'request_uri' => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'N/A',
-            'get' => $_GET,
-            'post' => $_POST
+            'get' => portos_diag_sanitize($_GET),
+            'post' => portos_diag_sanitize($_POST)
         ));
         
      // na��tanie z�kladn�ch funkci� eshopu
@@ -108,9 +143,10 @@
         }
         if ($akcia === '') {
             portos_diag('Parameter "akcia" nebol odovzdany alebo je prazdny.', array(
-                'HTTP_GET_VARS' => isset($HTTP_GET_VARS) ? $HTTP_GET_VARS : array(),
-                'HTTP_POST_VARS' => isset($HTTP_POST_VARS) ? $HTTP_POST_VARS : array()
+                'HTTP_GET_VARS' => isset($HTTP_GET_VARS) ? portos_diag_sanitize($HTTP_GET_VARS) : array(),
+                'HTTP_POST_VARS' => isset($HTTP_POST_VARS) ? portos_diag_sanitize($HTTP_POST_VARS) : array()
             ), 'ERROR');
+            echo '<div style="font-family: sans-serif; color: #900; margin: 10px 0;">Chyba: parameter <b>akcia</b> nie je odovzdany.</div>';
         } else {
             portos_diag('Spracovava sa akcia: ' . $akcia);
         }
