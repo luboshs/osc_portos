@@ -87,9 +87,11 @@
       //     return $result_decoded;
     }
     
-        function ocisti($string){      
-            $ocistene_1 = strtr($string, '�����������������������������ͼ�����������ݎ�', 'aacdeeeilnooorrstuuuyzAACDEEEILNOOORRSTUUUYZs');
-            $ocistene = substr($ocistene_1,0,42);
-            return $ocistene;    
+        function ocisti($string){
+            $converted = iconv('Windows-1250', 'UTF-8//TRANSLIT', $string);
+            if ($converted === false) {
+                $converted = $string;
+            }
+            return mb_substr($converted, 0, 42, 'UTF-8');
     }
 ?>
