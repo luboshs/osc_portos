@@ -50,6 +50,7 @@
             }
 
             echo '<div style="font-family: monospace; font-size: 12px; border:1px solid #666; background:' . $bg . '; margin:5px 0; padding:6px;">';
+            // ISO-8859-1 used instead of Windows-1250: PHP 5.3.29 does not support 'Windows-1250' charset name
             echo '<b>[PORTOS DIAG][' . htmlspecialchars($type, ENT_QUOTES, 'ISO-8859-1') . ']</b> ';
             echo htmlspecialchars($message, ENT_QUOTES, 'ISO-8859-1');
             if (!empty($context)) {
