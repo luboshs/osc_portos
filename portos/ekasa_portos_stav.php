@@ -1,44 +1,53 @@
 <?php
+    $hlasenie = '';
     // VOLANIE API 
-    // stav tlaèiarne
+    // stav tlaï¿½iarne
       $function_url = 'printers/status';
       $data_array = array();
       $response_json = callAPI('GET', $function_url, $data_array);
       $response  = json_decode($response_json, true);
-      $stav_tlaciaren   = $response['state'];
+      $stav_tlaciaren   = (is_array($response) && isset($response['state'])) ? $response['state'] : 'Unknown';
+      $chyba_tlaciaren = (is_array($response) && isset($response['error']['message'])) ? $response['error']['message'] : '';
     // VOLANIE API
     // stav spojenia s ekasa 
       $function_url = 'connectivity/status';
       $data_array = array();
       $response_json = callAPI('GET', $function_url, $data_array);
       $response  = json_decode($response_json, true);
-      $stav_spojenia   = $response['state'];      
-   // spracovanie výstupov do hlásení stavu   
+      $stav_spojenia   = (is_array($response) && isset($response['state'])) ? $response['state'] : 'Unknown';
+      $chyba_spojenie = (is_array($response) && isset($response['error']['message'])) ? $response['error']['message'] : '';
+   // spracovanie vï¿½stupov do hlï¿½senï¿½ stavu   
                         $systemovy_stav ="";
                         if ($stav_spojenia=="Down") {
                                 $class ="nadpis_chyba"; 
                                 $systemovy_stav = 'CHYBA SPOJENIA s ekasa serverom';
-                                $hlasenie .="<br />Skontroluj èi má poèítaè spojenie s internetom, kontaktuj administrátora!";
+                                $hlasenie .="<br />Skontroluj ï¿½i mï¿½ poï¿½ï¿½taï¿½ spojenie s internetom, kontaktuj administrï¿½tora!";
                                 $hlasenie .="<br />Stav spojenia: ".$stav_spojenia;  
-                                $hlasenie .="<br />Stav tlaèiarne: ".$stav_tlaciaren;                                  
+                                $hlasenie .="<br />Stav tlaï¿½iarne: ".$stav_tlaciaren;                                  
                         }
                         else if ($stav_spojenia=="Unknown") {
                                 $class ="nadpis_chyba"; 
-                                $systemovy_stav = 'NEZNÁMY STAV SPOJENIA s ekasa serverom';
-                                $hlasenie .="<br />Skontroluj èi má poèítaè spojenie s internetom, kontaktuj administrátora!";
+                                $systemovy_stav = 'NEZNï¿½MY STAV SPOJENIA s ekasa serverom';
+                                $hlasenie .="<br />Skontroluj ï¿½i mï¿½ poï¿½ï¿½taï¿½ spojenie s internetom, kontaktuj administrï¿½tora!";
                                 $hlasenie .="<br />Stav spojenia: ".$stav_spojenia; 
-                                $hlasenie .="<br />Stav tlaèiarne: ".$stav_tlaciaren;                        
+                                $hlasenie .="<br />Stav tlaï¿½iarne: ".$stav_tlaciaren;                        
                         }
                         else if ($stav_tlaciaren == 'Ready') {
                                 $class ="nadpis_ok"; 
-                                $systemovy_stav .= 'tlaèiareò online';
+                                $systemovy_stav .= 'tlaï¿½iareï¿½ online';
                         }
                         else {
                                 $class ="nadpis_chyba"; 
-                                $systemovy_stav = 'tlaèiareò OFFLINE';
-                                $hlasenie .="<br />Skontroluj èi je tlaèiareò pripojená a zapnutá!";
+                                $systemovy_stav = 'tlaï¿½iareï¿½ OFFLINE';
+                                $hlasenie .="<br />Skontroluj ï¿½i je tlaï¿½iareï¿½ pripojenï¿½ a zapnutï¿½!";
                                 $hlasenie .="<br />Stav spojenia: ".$stav_spojenia;
-                                $hlasenie .="<br />Stav tlaèiarne: ".$stav_tlaciaren;                                
+                                $hlasenie .="<br />Stav tlaï¿½iarne: ".$stav_tlaciaren;                                
                         }      
+                        if ($chyba_spojenie != '') {
+                                $hlasenie .="<br />Detail spojenia: ".$chyba_spojenie;
+                        }
+                        if ($chyba_tlaciaren != '') {
+                                $hlasenie .="<br />Detail tlaï¿½iarne: ".$chyba_tlaciaren;
+                        }
       
 ?>
