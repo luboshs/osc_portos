@@ -1,11 +1,11 @@
 <?php
 //  ****************************************************************   
-//  ******* príprava položiek pre doklad ***************************   
+//  ******* prï¿½prava poloï¿½iek pre doklad ***************************   
 //  ****************************************************************       
 //  ****** verzia 1.00 01.02.2020 **********************************
 //  ****************************************************************
-//  úlohy:
-//  - je treba dopracova funkcionalitu na vracanie tovaru
+//  ï¿½lohy:
+//  - je treba dopracovaï¿½ funkcionalitu na vracanie tovaru
 //  - zlavu riesit zapisom medzi polozky objednavky a nie na konci dokladu
 
        $medzisucet = 0;
@@ -21,16 +21,16 @@
                                 if (!($order->products[$i]['qty']==0)) {
         
                                         $quantity   = $order->products[$i]['qty'];
-                                        // množstvo - quantity: object with required amount property with positive numeric value and precision 
+                                        // mnoï¿½stvo - quantity: object with required amount property with positive numeric value and precision 
                                         // up to 4 decimal places and optional unit field. If unit field will not be specified, 
                                         // default value x will be used. The unit field must not be empty string (""),
                                         $mnozstevna_jednotka = "x";
                                         
-                                        // jednotková cena, 6 desatinných miest
+                                        // jednotkovï¿½ cena, 6 desatinnï¿½ch miest
                                         $unitprice  =  $order->products[$i]['final_price'] * (($order->products[$i]['tax']+100)/100); 
                                         $unitprice  =  round($unitprice,6);
                                         
-                                        // ak ide o vrýtenie položky treba ma tento parameter vyplnený
+                                        // ak ide o vrï¿½tenie poloï¿½ky treba maï¿½ tento parameter vyplnenï¿½
                                         $referenceReceiptId = $order->products[$i]['referenceReceiptId'];
                                       /*
                                         if ( $referenceReceiptId <> '') {
@@ -38,7 +38,7 @@
                                                 $quantity = abs ($quantity);
                                         }
                                         */
-                                        // celková cena produktu, 2 desatinné miesta = musí sa rovna násobku UnitPrice a Quantity
+                                        // celkovï¿½ cena produktu, 2 desatinnï¿½ miesta = musï¿½ sa rovnaï¿½ nï¿½sobku UnitPrice a Quantity
                                         $price      =  $unitprice * $order->products[$i]['qty'];
                                         $price      =  round($price,2);
                                         $medzisucet += $price; 
@@ -59,19 +59,19 @@
                                         
                                         }
                                         
-                                        // name: do 255 znakov, sem budeme dáva katalógové èíslo
+                                        // name: do 255 znakov, sem budeme dï¿½vaï¿½ katalï¿½govï¿½ ï¿½ï¿½slo
                                         $products_model = str_replace (' [KC]','',$order->products[$i]['model']);
                                         $products_model = str_replace ('[KC]','',$products_model);
                                         $name           = '> ' . ocisti($products_model);
                                         
-                                        // description - nelimitovaný popis položky
+                                        // description - nelimitovanï¿½ popis poloï¿½ky
                                         $nazov = str_replace('"','',$order->products[$i]['name']);          
                                         $nazov = str_replace("'",'',$nazov); 
                                         $description= '  ' . ocisti($nazov);
                                         
                                         // sadzba dph - percentual VAT rate. In current version, the only allowed values are 20, 10 and 0.
                                         // od 1.1.2025 zmena sadzieb DPH
-                                        // korektívny kód pre staršie objednávky s DPH sadzbou 20% a 10%
+                                        // korektï¿½vny kï¿½d pre starï¿½ie objednï¿½vky s DPH sadzbou 20% a 10%
                                         
                                       
                                     
@@ -140,10 +140,10 @@
              
              
                   
-                  $zlava = $_POST["zlava_suma"];
+                  $zlava = isset($_POST["zlava_suma"]) ? $_POST["zlava_suma"] : 0;
                   $zlava_pritomna = false;
                    if ($zlava > 0) {
-                            $polozka_z = "Z¾ava " .$_POST["zlava_p"];
+                            $polozka_z = "Zï¿½ava " .$_POST["zlava_p"];
                             $zlava_cena = (0 - $zlava)/1.23; 
                             //tep_db_query("insert into " . TABLE_ORDERS_PRODUCTS . " (orders_id, products_model, products_name, products_price, final_price, products_tax, products_quantity) values ('" . (int)$oID . "', 'ZLAVA', '" . tep_db_input($polozka_z) . "', " . tep_db_input($zlava_cena)  . ", " . tep_db_input($zlava_cena). ", 20, 1)");
                             $zlava_m = 0 - abs($zlava);
@@ -160,7 +160,7 @@
                    }        
 
 
-                   if ($_POST["casopis"] == true) {
+                   if (isset($_POST["casopis"]) && $_POST["casopis"] == true) {
                             $description = $_GET["description"];
                             $pocet = $_GET["pocet"];
                             $cena = $_GET["cena"];
@@ -179,7 +179,7 @@
                    }  
           
           
-                                              // test zaokrúh¾ovanie
+                                              // test zaokrï¿½hï¿½ovanie
                                     $cifra = substr(number_format($medzisucet, 2,'.',''),-1);
                                         switch ($cifra) {
                                             case 0:
