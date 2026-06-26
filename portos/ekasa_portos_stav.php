@@ -1,5 +1,7 @@
 <?php
-    $hlasenie = '';
+    if (!isset($hlasenie)) {
+        $hlasenie = '';
+    }
     // VOLANIE API 
     // stav tla�iarne
       $function_url = 'printers/status';
@@ -44,10 +46,13 @@
                                 $hlasenie .="<br />Stav tla�iarne: ".$stav_tlaciaren;                                
                         }      
                         if ($chyba_spojenie != '') {
-                                $hlasenie .="<br />Detail spojenia: ".$chyba_spojenie;
+                                $hlasenie .="<br />Detail spojenia: ".htmlspecialchars($chyba_spojenie, ENT_QUOTES, 'cp-1250');
                         }
                         if ($chyba_tlaciaren != '') {
-                                $hlasenie .="<br />Detail tla�iarne: ".$chyba_tlaciaren;
+                                $hlasenie .="<br />Detail tla�iarne: ".htmlspecialchars($chyba_tlaciaren, ENT_QUOTES, 'cp-1250');
+                        }
+                        if (isset($GLOBALS['portos_ip_warning']) && $GLOBALS['portos_ip_warning'] != '') {
+                                $hlasenie .="<br /><b>Upozornenie:</b> ".htmlspecialchars($GLOBALS['portos_ip_warning'], ENT_QUOTES, 'cp-1250');
                         }
       
 ?>

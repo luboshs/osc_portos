@@ -19,9 +19,6 @@
                       $url = sprintf("%s?%s", $url, http_build_query($data));
              }
              // OPTIONS:
-             $url_portos = 'http://'.IP.':'.PORT.'/api/v1/'.$function_url;
-             //echo $url_portos;
-             curl_setopt($curl, CURLOPT_URL, $url_portos);
              curl_setopt($curl, CURLOPT_HTTPHEADER, array(
                 'Content-Type:application/json; charset=utf-8',
                 'Accept:application/json'
@@ -41,28 +38,53 @@
              curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
              curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
              curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-             // EXECUTE:
-             $result = curl_exec($curl);
-             if ($result === false) {
-                $curl_errno = curl_errno($curl);
-                $curl_error = curl_error($curl);
-                curl_close($curl);
-                return json_encode(array(
-                    'isSuccessful' => false,
-                    'state' => 'Unknown',
-                    'error' => array(
-                        'code' => 'CURL_ERROR',
-                        'message' => $curl_error,
-                        'errno' => $curl_errno,
-                        'url' => $url_portos
-                    )
-                ));
-             }
-         //    if(!$result){die("Connection Failure");}
-             curl_close($curl);
+
+            $ip_candidates = array(IP);
+            if (defined('IP_FALLBACK') && IP_FALLBACK != '' && IP_FALLBACK != IP) {
+               $ip_candidates[] = IP_FALLBACK;
+            }
+
+            $last_error = array(
+               'code' => 'CURL_ERROR',
+               'message' => 'Neznama chyba pripojenia.',
+               'errno' => 0,
+               'url' => ''
+            );
+
+            foreach ($ip_candidates as $try_ip) {
+               $url_portos = 'http://'.$try_ip.':'.PORT.'/api/v1/'.$function_url;
+               curl_setopt($curl, CURLOPT_URL, $url_portos);
+               // EXECUTE:
+               $result = curl_exec($curl);
+               if ($result !== false) {
+                   if ($try_ip != IP) {
+                       $GLOBALS['portos_ip_warning'] = 'Konfigurovana IP adresa pokladne ('.IP.') pravdepodobne nie je spravna alebo je nedostupna. Pouzita bola nahradna IP z klienta: '.$try_ip.'.';
+                   }
+                   curl_close($curl);
+                   return $result;
+               }
+
+               $last_error = array(
+                   'code' => 'CURL_ERROR',
+                   'message' => curl_error($curl),
+                   'errno' => curl_errno($curl),
+                   'url' => $url_portos
+               );
+            }
+
+            if (count($ip_candidates) > 1) {
+               $GLOBALS['portos_ip_warning'] = 'Konfigurovana IP adresa pokladne ('.IP.') je pravdepodobne nespravne nastavena alebo nedostupna. Kontrolujte cookie ip_address.';
+            }
+
+            curl_close($curl);
+            return json_encode(array(
+                'isSuccessful' => false,
+                'state' => 'Unknown',
+                'error' => $last_error
+            ));
+        //    if(!$result){die("Connection Failure");}
       //     $result_decoded = json_decode($result, true);
       //     return $result_decoded;
-             return $result;
     }
     
         function ocisti($string){      
