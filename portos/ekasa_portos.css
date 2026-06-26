@@ -1,0 +1,113 @@
+.button_blocek {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 2px 2px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 100px;
+    height: 60px;    
+}
+
+.button_blocek:hover {
+  background: #968796;
+  text-decoration: none;
+}
+
+
+.button_platba {
+    background-color: #CC9900;  
+    border: none;
+    color: white;
+    padding: 2px 2px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 115px;
+    height: 60px;
+}
+
+.button_platba:hover {
+  background: #4CAF50;
+  text-decoration: none;
+}
+
+.button_zrusit {
+    background-color: #f03939;  
+    border: none;
+    color: white;
+    padding: 2px 2px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 100px;
+    height: 60px;
+}
+
+.button_zrusit:hover {
+  background: #968796;
+  text-decoration: none;
+}
+
+
+.button_karta {
+    background-color: #4848b3;  
+    border: none;
+    color: white;
+    padding: 2px 2px;
+    text-align: center;                                    
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 100px;
+    height: 60px;
+}
+
+.button_karta:hover {
+  background: #968796;
+  text-decoration: none;
+}
+
+.schovaj {
+      color: red;
+      font-size: 16px;
+      display: none;
+      border-top: 1px solid #666;
+      border-bottom: 1px solid #666; 
+}
+
+.oddelovac {
+      height: 80px;  
+}
+
+.nadpis_ok {
+    background-color: #4CAF50;  
+    border: none;
+    color: white;
+    padding: 8px 8px;
+    text-align: center;                                    
+    font-size: 20px;
+    height: 40px;
+}
+
+.nadpis_chyba {
+    background-color: #EE3B3B;  
+    border: none;
+    color: white;
+    padding: 8px 8px;
+    text-align: center;                                    
+    font-size: 20px;
+    height: 40px;
+}
+
+tr.kladny td{
+  background-color: #ccffcc;
+}
+
+tr.zaporny td{
+  background-color:  #ff9999;
+}

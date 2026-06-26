@@ -1,0 +1,78 @@
+.block_zostatok {
+    background-color: #99CCFF; /* Green */
+    border: 2px 2px 2px 2px;
+    color: #000066;
+    padding: 5px 5px 5px 5px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 160px;
+    height: 60px;    
+}
+
+.block_trzby {  
+    background-color: #CCFFCC; /* Green */
+    border: 2px;
+    color: #006600;
+    padding: 5px 5px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 160px;
+    height: 60px;    
+} 
+
+.block_vklad {  
+    background-color: #99CCFF; /* Green */
+    border: 2px;
+    color: #CC0000;
+    padding: 5px 5px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 160px;
+    height: 60px;    
+}
+
+.button_vklad {
+    background-color: #000066;  
+    border: none;
+    color: white;
+    padding: 2px 2px 2px 2px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 120px;
+    height: 20px;
+}
+
+.button_vyber {
+    background-color:  #cc3300;
+    border: none;
+    color: white;
+    padding: 2px 2px 2px 2px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 120px;
+    height: 20px;
+}
+
+
+.button_vklad2 {
+    background-color: #f03939;  
+    border: none;
+    color: white;
+    padding: 2px 2px 2px 2px;
+    text-align: center;                                      
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 120px;
+    height: 20px;
+}
