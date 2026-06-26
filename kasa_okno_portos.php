@@ -71,7 +71,7 @@
         }
 
         function portos_diag_exception_handler($exception) {
-            portos_diag('Neodchytena vynimka', array(
+            portos_diag('Neodchytená výnimka', array(
                 'message' => $exception->getMessage(),
                 'file' => $exception->getFile(),
                 'line' => $exception->getLine(),
