@@ -9,7 +9,7 @@
       $response_json = callAPI('GET', $function_url, $data_array);
       $response  = json_decode($response_json, true);
       $stav_tlaciaren   = (is_array($response) && isset($response['state'])) ? $response['state'] : 'Unknown';
-      $chyba_tlaciaren = (is_array($response) && isset($response['error']['message'])) ? $response['error']['message'] : '';
+      $chyba_tlaciaren = (is_array($response) && isset($response['error']['message'])) ? iconv('UTF-8', 'Windows-1250//TRANSLIT', $response['error']['message']) : '';
     // VOLANIE API
     // stav spojenia s ekasa 
       $function_url = 'connectivity/status';
@@ -17,7 +17,7 @@
       $response_json = callAPI('GET', $function_url, $data_array);
       $response  = json_decode($response_json, true);
       $stav_spojenia   = (is_array($response) && isset($response['state'])) ? $response['state'] : 'Unknown';
-      $chyba_spojenie = (is_array($response) && isset($response['error']['message'])) ? $response['error']['message'] : '';
+      $chyba_spojenie = (is_array($response) && isset($response['error']['message'])) ? iconv('UTF-8', 'Windows-1250//TRANSLIT', $response['error']['message']) : '';
    // spracovanie v�stupov do hl�sen� stavu   
                         $systemovy_stav ="";
                         if ($stav_spojenia=="Down") {
