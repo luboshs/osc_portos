@@ -13,7 +13,7 @@
               
      // zistenie POST / GET dát
         if (isset($_GET["faktura"])) {$faktura=true;} else {$faktura=false;}
-        $akcia = (isset($HTTP_GET_VARS['akcia']) ? $HTTP_GET_VARS['akcia'] : $HTTP_POST_VARS['akcia']);
+        $akcia = (isset($HTTP_GET_VARS['akcia']) ? $HTTP_GET_VARS['akcia'] : (isset($HTTP_POST_VARS['akcia']) ? $HTTP_POST_VARS['akcia'] : ''));
 
         switch ($akcia) {
 
@@ -269,7 +269,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br /><br />';
+                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br />';
                         echo '</td>';
                         echo '<td>';
                         echo '';
