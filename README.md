@@ -30,3 +30,21 @@ s jednobajtovým kódovaním.
 Pokladník môže sumu zadať s desatinnou čiarkou aj bodkou. Čiarka sa automaticky prepíše
 na bodku – v prehliadači funkciami `naCislo()` / `cisloZPolicka()`
 (`portos/ekasa_skripty.js`) a na serveri funkciou `ekasa_cislo()` (`portos/ekasa_portos.php`).
+
+## Zákaznícky displej (ATaC display API)
+
+Okno kasy pri načítaní pošle nákup na zákaznícky displej v režime SHOPPING
+(pôvodné ceny) a po zadaní zľavy tlačidlom **ZADAJ ZĽAVU** ho pošle znova
+vo fáze `discounted` (pôvodná cena, zľava a cena po zľave pri každej položke;
+položky s konečnou cenou [KC] displej označí ako nezľavniteľné).
+
+- `portos/ekasa_displej.php` – obálka nad integračnými skriptami displeja
+  (`ekasa_displej_nakup()` → `atac_display_send_order()`,
+  `ekasa_displej_zlava()` → `atac_pos_discount_order()` / `atac_pos_preview_order()`),
+- `kasa_displej_portos.php` – AJAX endpoint, ktorý kasa volá po zadaní zľavy,
+- `posliDisplejZlavu()` v `portos/ekasa_skripty.js` – odoslanie zľavy z prehliadača.
+
+Predpoklad: v adresári `admin/includes/` sú nahraté súbory `oscommerce_bridge.php`,
+`oscommerce_edit_orders.php` a `oscommerce_pos_discount.php` s nastaveným
+`DISPLAY_API_URL` a `DISPLAY_API_KEY`. Ak tam nie sú alebo je API nedostupné,
+funkcie iba vrátia `false` a beh kasy nikdy neprerušia.

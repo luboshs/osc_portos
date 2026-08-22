@@ -249,6 +249,31 @@ function vypocetZlavy (percento) {
               return Math.round(zlava_sum * 100) / 100;
 }
 
+// odoslanie zadanej zlavy na zakaznicky displej (rezim SHOPPING, faza discounted)
+// zlava 0 = zrusenie zlavy, displej ukaze povodne ceny
+function posliDisplejZlavu (zlava) {
+              var policko_oID = document.getElementById("oID");
+              if (!policko_oID || !policko_oID.value) {return;}
+
+              var data = "oID=" + encodeURIComponent(policko_oID.value) + "&zlava_p=" + encodeURIComponent(naCislo(zlava));
+
+              try {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "kasa_displej_portos.php", true);
+                    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                    xhr.onreadystatechange = function () {
+                              if (xhr.readyState === 4) {
+                                    console.log("displej (zlava " + zlava + "%): " + xhr.status + " " + xhr.responseText);
+                              }
+                    };
+                    xhr.send(data);
+              } catch (e) {
+                    // displej nikdy nesmie zablokovat kasu
+                    console.log("displej - chyba: " + e);
+              }
+}
+
+
 function dajZlavu(zlava_0) {
      
      var zlava = prompt ("Akú percentuálnu zľavu chcete pridať?\n(možno zadať hodnoty od 1 do 15 %)",zlava_0);
@@ -274,6 +299,7 @@ function dajZlavu(zlava_0) {
                            
                           zlava_p.value = zlava + "%";
                           zlava_suma.value = zlava_sum;
+                          posliDisplejZlavu(zlava);
                           karta.value = 0.00;
                           hotovost.value = ma_dat; 
                           vydavok.value = 'NIE'; 
