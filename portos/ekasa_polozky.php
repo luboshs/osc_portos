@@ -245,7 +245,7 @@
                                    // nulovú zľavu (0,00) na doklad neuvádzame
                                    if (abs($discount_price) >= 0.01) {
                                            $items [] =   array (   'type'        =>    'Discount',
-                                                                   'name'        =>    'ZĽAVA ' . $zlava_percent . '% - ' . $name,
+                                                                   'name'        =>    '  ZĽAVA ' . $zlava_percent . '% - ' . $name,
                                                                    'price'       =>    $discount_price,
                                                                    'unitPrice'   =>    round(-abs($discount_amount), 6),
                                                                    'quantity'    =>    array ("amount" => $pocet, "unit" => 'x'),
