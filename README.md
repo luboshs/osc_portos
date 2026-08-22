@@ -33,13 +33,15 @@ na bodku – v prehliadači funkciami `naCislo()` / `cisloZPolicka()`
 
 ## Zákaznícky displej (ATaC display API)
 
-Okno kasy pri načítaní pošle nákup na zákaznícky displej v režime SHOPPING
-(pôvodné ceny) a po zadaní zľavy tlačidlom **ZADAJ ZĽAVU** ho pošle znova
-vo fáze `discounted` (pôvodná cena, zľava a cena po zľave pri každej položke;
-položky s konečnou cenou [KC] displej označí ako nezľavniteľné).
+Okno kasy pri načítaní (`kasa_okno_portos.php?oID=…`) pošle nákup na zákaznícky displej
+v režime SHOPPING vo fáze `preview` (pôvodné ceny) a po zadaní zľavy tlačidlom
+**ZADAJ ZĽAVU** ho pošle znova vo fáze `discounted` (pôvodná cena, zľava a cena
+po zľave pri každej položke; položky s konečnou cenou [KC] displej označí ako
+nezľavniteľné).
 
 - `portos/ekasa_displej.php` – obálka nad integračnými skriptami displeja
-  (`ekasa_displej_nakup()` → `atac_display_send_order()`,
+  (`ekasa_displej_nakup()` → `atac_pos_preview_order()`, so záložným
+  `atac_display_send_order()` pre staršiu integráciu,
   `ekasa_displej_zlava()` → `atac_pos_discount_order()` / `atac_pos_preview_order()`),
 - `kasa_displej_portos.php` – AJAX endpoint, ktorý kasa volá po zadaní zľavy,
 - `posliDisplejZlavu()` v `portos/ekasa_skripty.js` – odoslanie zľavy z prehliadača.
@@ -47,4 +49,6 @@ položky s konečnou cenou [KC] displej označí ako nezľavniteľné).
 Predpoklad: v adresári `admin/includes/` sú nahraté súbory `oscommerce_bridge.php`,
 `oscommerce_edit_orders.php` a `oscommerce_pos_discount.php` s nastaveným
 `DISPLAY_API_URL` a `DISPLAY_API_KEY`. Ak tam nie sú alebo je API nedostupné,
-funkcie iba vrátia `false` a beh kasy nikdy neprerušia.
+funkcie iba vrátia `false` a beh kasy nikdy neprerušia. Dôvod neúspechu sa zapíše
+do `$GLOBALS['ekasa_displej_stav']` a pri otvorení okna kasy s `&diag=1` sa vypíše
+priamo na stránke.
