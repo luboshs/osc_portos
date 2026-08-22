@@ -171,10 +171,25 @@
                         return array('success' => false, 'data' => array());
                 }
 
+                // načítanie položiek objednávky z DB (CP1250 - bridge si ich sám konvertuje do UTF-8)
+                $items = array();
+                if (function_exists('tep_db_query') && defined('TABLE_ORDERS_PRODUCTS')) {
+                        $sql = tep_db_query("SELECT products_name, products_model, products_quantity, final_price, products_tax FROM " . TABLE_ORDERS_PRODUCTS . " WHERE orders_id = " . $oID);
+                        while ($row = tep_db_fetch_array($sql)) {
+                                $items[] = array(
+                                        'name'     => $row['products_name'],
+                                        'sku'      => $row['products_model'],
+                                        'quantity' => (float)$row['products_quantity'],
+                                        'price'    => (float)$row['final_price'],
+                                        'vat'      => (float)$row['products_tax'],
+                                );
+                        }
+                }
+
                 $volanie = ekasa_displej_volanie(
                         'oscommerce_bridge.php',
                         array('atac_start_qr_payment', 'atac_display_qr_payment'),
-                        array($oID, $suma),
+                        array($oID, $items, $suma),
                         'QR štart'
                 );
 
