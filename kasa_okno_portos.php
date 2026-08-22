@@ -110,6 +110,8 @@
      // načítanie nastavení a funkcií ekasa
         include ('portos/ekasa_portos_nastavenia.php');
         include ('portos/ekasa_portos.php');
+     // funkcie zákazníckeho displeja
+        include ('portos/ekasa_displej.php');
 
         
    /*
@@ -1301,6 +1303,9 @@
                
                     
                 default:
+                     // po načítaní okna kasy pošli nákup na zákaznícky displej (režim SHOPPING)
+                        ekasa_displej_nakup($oID);
+
                         echo '<table>';
 
                         include ('portos/ekasa_portos_stav.php');
@@ -1486,7 +1491,7 @@
                         echo '</table>';
                         
                         
-                        echo '<input type="hidden" name="oID" value="'.$oID.'">';
+                        echo '<input type="hidden" name="oID" value="'.$oID.'" id="oID">';
                         echo '<input type="hidden" name="medzisucet" id="medzisucet" value="'.$medzisucet.'">';
                         echo '<input type="hidden" name="dph" value="'.$dph.'">';
                         echo '<input type="hidden" name="nakup" value="'.$nakup.'">';
