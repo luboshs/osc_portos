@@ -242,8 +242,8 @@
                                                     );
                                                     
                            // časopis je bežná položka - zľavu je možné dať na celú jeho cenu
-                           $zlava_polozky = array (array ('unitPrice' => $cena, 'quantity' => $pocet));
-                           $zlava_zaklad  = $medzisucet;
+                           $zlava_polozky [] = array ('unitPrice' => $cena, 'quantity' => $pocet);
+                           $zlava_zaklad     = $medzisucet;
                            
                            if ($zlava_percent > 0) {
                                    $discount_amount = $cena * ($zlava_percent / 100);
