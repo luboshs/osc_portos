@@ -47,8 +47,9 @@ nezľavniteľné).
 - `posliDisplejZlavu()` v `portos/ekasa_skripty.js` – odoslanie zľavy z prehliadača.
 
 Predpoklad: súbory `oscommerce_bridge.php`, `oscommerce_edit_orders.php` a
-`oscommerce_pos_discount.php` sú nahraté v adresári `admin/includes/` alebo priamo
-v `admin/` (hľadá sa v oboch) a majú nastavené `DISPLAY_API_URL` a `DISPLAY_API_KEY`.
+`oscommerce_pos_discount.php` sú nahraté priamo v adresári `admin/` (hľadá sa najprv tam,
+až potom v `admin/includes/`, kde ich mohli mať staršie inštalácie) a majú nastavené
+`DISPLAY_API_URL` a `DISPLAY_API_KEY`.
 Ak tam nie sú alebo je API nedostupné, funkcie iba vrátia `false` a beh kasy nikdy
 neprerušia. Dôvod neúspechu sa zapíše do `$GLOBALS['ekasa_displej_stav']`.
 
@@ -59,7 +60,9 @@ neprerušia. Dôvod neúspechu sa zapíše do `$GLOBALS['ekasa_displej_stav']`.
    a či volanie skončilo `OK` alebo `neúspech` (prípadne že sa súbor nenašiel – vypíšu sa
    všetky prehľadané cesty).
 2. **Diagnostika na stránke** – to isté sa vypíše aj priamo v okne kasy pri otvorení
-   `kasa_okno_portos.php?oID=…&diag=1`.
+   `kasa_okno_portos.php?oID=…&diag=1`, vrátane riadku `verzia obálky displeja …`,
+   podľa ktorého sa dá overiť, či je na serveri nahratá aktuálna verzia
+   `portos/ekasa_displej.php`.
 3. **Zľava** – v okne kasy stlač **ZADAJ ZĽAVU**, zadaj napr. 10 a v konzole prehliadača
    (F12 → Console) sa vypíše odpoveď endpointu `kasa_displej_portos.php`, ktorá okrem
    `success` obsahuje aj pole `stav` s dôvodom neúspechu.

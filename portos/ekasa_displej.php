@@ -2,10 +2,11 @@
 //  ****************************************************************
 //  ******* zákaznícky displej (ATaC display API) ******************
 //  ****************************************************************
-//  ****** verzia 1.02 *********************************************
+//  ****** verzia 1.03 *********************************************
 //  ****************************************************************
 //  Obálka nad integračnými skriptami displeja, ktoré sú uložené
-//  v adresári admin/includes/ :
+//  priamo v adresári admin/ (staršie inštalácie ich môžu mať
+//  v admin/includes/, preto sa hľadá na oboch miestach) :
 //      - oscommerce_bridge.php       (základná komunikácia s API)
 //      - oscommerce_pos_discount.php (atac_pos_preview_order, atac_pos_discount_order)
 //      - oscommerce_edit_orders.php  (atac_display_send_order - hlavná cesta)
@@ -17,12 +18,15 @@
 //  Pri otvorení okna kasy sa najprv skúsi atac_display_send_order() zo skriptu
 //  oscommerce_edit_orders.php (rovnaké volanie ako v admin/edit_orders.php)
 //  a až potom novšie atac_pos_preview_order().
-//  Skripty sa hľadajú v admin/includes/ aj priamo v admin/.
+//  Skripty sa hľadajú najprv priamo v admin/, potom v admin/includes/.
 //
 //  Ak integračné skripty na serveri nie sú, alebo displej nie je
 //  dostupný, funkcie iba vrátia false a beh kasy nikdy neprerušia.
 //  Dôvod neúspechu sa zapíše do $GLOBALS['ekasa_displej_stav'],
 //  takže pri volaní okna kasy s ?diag=1 je vidieť, prečo sa nič neposlalo.
+
+       // verzia obálky displeja - v diagnostike je vidieť, či server beží aktuálny súbor
+       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.03'); }
 
        // poznámka o poslednom volaní displeja (pre diagnostiku)
        if (!function_exists('ekasa_displej_stav')) {
@@ -38,17 +42,23 @@
        if (!function_exists('ekasa_displej_cesty')) {
        function ekasa_displej_cesty ($subor) {
                  $cesty = array();
+                 // integračné skripty sú nahraté priamo v adresári admin/
+                 if (defined('DIR_FS_ADMIN')) { $cesty[] = DIR_FS_ADMIN . $subor; }
+                 // adresár admin/ odvodený z umiestnenia tohto súboru (admin/portos/ekasa_displej.php),
+                 // aby hľadanie fungovalo aj keď DIR_FS_ADMIN nie je definovaná alebo je nastavená inak
+                 $adresar_portos = dirname(__FILE__);
+                 $cesty[] = dirname($adresar_portos) . '/' . $subor;
+                 $cesty[] = $subor;
+                 // staršie inštalácie mohli mať skripty v admin/includes/
                  if (defined('DIR_FS_ADMIN')) {
                          $cesty[] = DIR_FS_ADMIN . 'includes/' . $subor;
                          if (defined('DIR_WS_INCLUDES')) { $cesty[] = DIR_FS_ADMIN . DIR_WS_INCLUDES . $subor; }
-                         // integračné skripty môžu byť nahraté aj priamo v adresári admin/
-                         $cesty[] = DIR_FS_ADMIN . $subor;
                  }
+                 $cesty[] = dirname($adresar_portos) . '/includes/' . $subor;
                  $cesty[] = 'includes/' . $subor;
-                 $cesty[] = $subor;
                  if (defined('DIR_FS_DOCUMENT_ROOT')) {
-                         $cesty[] = DIR_FS_DOCUMENT_ROOT . 'admin/includes/' . $subor;
                          $cesty[] = DIR_FS_DOCUMENT_ROOT . 'admin/' . $subor;
+                         $cesty[] = DIR_FS_DOCUMENT_ROOT . 'admin/includes/' . $subor;
                  }
                  return array_values(array_unique($cesty));
        }
@@ -74,6 +84,7 @@
        if (!function_exists('ekasa_displej_nakup')) {
        function ekasa_displej_nakup ($oID) {
                  $oID = (int)$oID;
+                 ekasa_displej_stav('verzia obálky displeja '.EKASA_DISPLEJ_VERZIA);
                  if ($oID <= 0) {
                          ekasa_displej_stav('nákup sa neodoslal - chýba číslo objednávky');
                          return false;

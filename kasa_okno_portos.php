@@ -145,11 +145,14 @@
             $akcia = '';
         }
         if ($akcia === '') {
-            portos_diag('Parameter "akcia" nebol odovzdany alebo je prazdny.', array(
+            portos_diag('Parameter "akcia" nebol odovzdany - zobrazuje sa okno kasy (default).', array(
                 'HTTP_GET_VARS' => isset($HTTP_GET_VARS) ? portos_diag_sanitize($HTTP_GET_VARS) : array(),
                 'HTTP_POST_VARS' => isset($HTTP_POST_VARS) ? portos_diag_sanitize($HTTP_POST_VARS) : array()
-            ), 'ERROR');
-            echo '<div style="font-family: sans-serif; color: #900; margin: 10px 0;">Chyba: parameter <b>akcia</b> nie je odovzdany.</div>';
+            ));
+         // po načítaní okna kasy pošli nákup na zákaznícky displej
+         // (režim SHOPPING, fáza preview - pôvodné ceny); volá sa mimo switch,
+         // aby odoslanie nezáviselo od vetvy, ktorá sa práve vykresľuje
+            ekasa_displej_nakup($oID);
         } else {
             portos_diag('Spracovava sa akcia: ' . $akcia);
         }
@@ -1303,10 +1306,8 @@
                
                     
                 default:
-                     // po načítaní okna kasy pošli nákup na zákaznícky displej
-                     // (režim SHOPPING, fáza preview - pôvodné ceny)
-                        ekasa_displej_nakup($oID);
-                     // výsledok sa vždy zapíše aj do HTML komentára (Ctrl+U), aby sa dalo
+                     // nákup sa na displej odosiela už pred switchom (pri prázdnej akcii),
+                     // tu sa len zapíše výsledok do HTML komentára (Ctrl+U), aby sa dalo
                      // jednoducho overiť, či a prečo sa na displej niečo poslalo
                         echo "\n".'<!-- displej: '.htmlspecialchars(str_replace('--', '-', isset($GLOBALS['ekasa_displej_log']) ? implode(' | ', $GLOBALS['ekasa_displej_log']) : 'funkcia sa nezavolala'), ENT_QUOTES, 'UTF-8').' -->'."\n";
 
