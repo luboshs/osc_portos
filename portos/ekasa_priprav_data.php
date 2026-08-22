@@ -39,7 +39,10 @@
                     $headerText = '------------------------------------------'."\n".$nadpis;
                     if ($oID >0) {  $headerText .= 'C. obj. : '.$oID."\n";}
                     if (strlen($zakaznik_meno)>5 AND $zakaznik_meno<>"Predaj na kase")   {$headerText .= 'Zakaznik: '.$zakaznik_meno."\n";}
-                    $footerText = FOOTER_TEXT.$externalId;
+                    // nefiskalny text o usetrenej sume sa tlaci nad FOOTER_TEXT (www.modelovazeleznica.sk)
+                    $footerText = '';
+                    if (isset($info_text) AND $info_text <> '') { $footerText .= 'INFO: '.$info_text."\n"; }
+                    $footerText .= FOOTER_TEXT.$externalId;
                     $hotovost_zaokruhlena = $hotovost + $roundingAmount;
                     $payments   = array(    array ('name' => "Hotovost", 'amount' => $hotovost_zaokruhlena),
                                             array ('name' => "Platba kartou", 'amount' => $platba_kartou));
