@@ -4,7 +4,7 @@
         error_reporting(E_ALL);
         header('Content-Type: text/html; charset=utf-8');
 ?><!DOCTYPE html>
- <?php
+<?php
 
         $portos_diag_enabled = (isset($_GET['diag']) && $_GET['diag'] === '1') || (isset($_POST['diag']) && $_POST['diag'] === '1');
 
@@ -259,6 +259,7 @@
                     $faktura        =   $_POST["cislo_faktury"];
                     $function_url = 'requests/receipts/invoice'; 
                     $roundingAmount = isset($_POST["zaokruhlenie"]) ? ekasa_cislo($_POST["zaokruhlenie"]) : 0;
+                    if ($roundingAmount === false) { echo '<p>CHYBA: Neplatná hodnota zaokrúhlenia.</p>'; break; }
 // !!!!!!!!!!!                     
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
                     if ($hotovost === false) { echo '<p>CHYBA: Neplatná hodnota hotovosti.</p>'; break; }
@@ -576,6 +577,7 @@
                     $eID = mysql_insert_id();
                     
                     $roundingAmount =   isset($_POST["zaokruhlenie"]) ? ekasa_cislo($_POST["zaokruhlenie"]) : 0;
+                    if ($roundingAmount === false) { echo '<p>CHYBA: Neplatná hodnota zaokrúhlenia.</p>'; break; }
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
                     if ($hotovost === false) { echo '<p>CHYBA: Neplatná hodnota hotovosti.</p>'; break; }
                     $novy_zostatok  =   $zostatok + $hotovost;
