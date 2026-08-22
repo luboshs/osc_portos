@@ -165,7 +165,7 @@
                     $eID = mysql_insert_id();
                     //echo $eID;
                     
-                    $suma           =   ekasa_cislo($_POST["suma"]);
+                    $suma           =   isset($_POST["suma"]) ? ekasa_cislo($_POST["suma"]) : 0;
                     $novy_zostatok  =   $zostatok + $suma;            
                     $poznamkaInterna=   $_POST["poznamka"].', '.$_POST["poznamkaInterna"];
                     $poznamka       =   $_POST["poznamka"];
@@ -255,17 +255,15 @@
                     $sql_zaloz_id = tep_db_query("insert into ekasa_doklady (type, cashRegisterCode, date, hotovost_zostatok) values ('invoice', '".CASH_REGISTER_CODE."', '" . tep_db_input($datum) . "', '".tep_db_input($zostatok)."')");
                     $eID = mysql_insert_id();
                
-                    $suma           =   ekasa_cislo($_POST["suma"]);
+                    $suma           =   isset($_POST["suma"]) ? ekasa_cislo($_POST["suma"]) : 0;
                     $novy_zostatok  =   $zostatok + $suma;            
                     $poznamkaInterna=   $_POST["poznamkaInterna"];
                     $faktura        =   $_POST["cislo_faktury"];
                     $function_url = 'requests/receipts/invoice'; 
-                    $roundingAmount = ekasa_cislo($_POST["zaokruhlenie"]);
+                    $roundingAmount = isset($_POST["zaokruhlenie"]) ? ekasa_cislo($_POST["zaokruhlenie"]) : 0;
 // !!!!!!!!!!!                     
-                    $hotovost       =   ekasa_cislo($_POST["hotovost_ma_dat"]);
-                     $novy_zostatok  =   $zostatok + $hotovost;       
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
-                    $platba_kartou  =   ekasa_cislo($_POST["karta"]);  
+                    $novy_zostatok  =   $zostatok + $hotovost;
                     if (isset($_POST["karta"])) {$platba_kartou=ekasa_cislo($_POST["karta"]);} else {$platba_kartou=0;}
                     $payments   = array(    array ('name' => "Hotovost", 'amount' => $hotovost),
                                             array ('name' => "Platba kartou", 'amount' => $platba_kartou));                    
@@ -485,7 +483,7 @@
                     $eID = mysql_insert_id();
                     //echo $eID;
                     
-                    $suma           =   ekasa_cislo($_POST["suma"]);
+                    $suma           =   isset($_POST["suma"]) ? ekasa_cislo($_POST["suma"]) : 0;
                     $suma           =   abs ($suma);
                     $novy_zostatok  =   $zostatok - $suma;       
                     $suma_negativna = 0 -$suma;      
@@ -577,11 +575,9 @@
                     $sql_zaloz_id = tep_db_query("insert into ekasa_doklady (type, cashRegisterCode, date, hotovost_zostatok) values ('cash_register', '".CASH_REGISTER_CODE."', '" . tep_db_input($datum) . "', '".tep_db_input($zostatok)."')");
                     $eID = mysql_insert_id();
                     
-                    $roundingAmount =   ekasa_cislo($_POST["zaokruhlenie"]);
-                    $hotovost       =   ekasa_cislo($_POST["hotovost_ma_dat"]);
-                    $novy_zostatok  =   $zostatok + $hotovost;
+                    $roundingAmount =   isset($_POST["zaokruhlenie"]) ? ekasa_cislo($_POST["zaokruhlenie"]) : 0;
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
-                    $platba_kartou  =   ekasa_cislo($_POST["karta"]);  
+                    $novy_zostatok  =   $zostatok + $hotovost;
                     if (isset($_POST["karta"])) {$platba_kartou=ekasa_cislo($_POST["karta"]);} else {$platba_kartou=0;}
                //   príprava premenných pre doklad     
                     include ('portos/ekasa_priprav_data.php');

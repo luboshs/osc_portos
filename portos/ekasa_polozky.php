@@ -30,7 +30,7 @@
                                         $unitprice  =  $order->products[$i]['final_price'] * (($order->products[$i]['tax']+100)/100); 
                                         $unitprice  =  round($unitprice,6);
                                         
-                                        // ak ide o vrýtenie položky treba mať tento parameter vyplnený
+                                        // ak ide o vrátenie položky treba mať tento parameter vyplnený
                                         $referenceReceiptId = $order->products[$i]['referenceReceiptId'];
                                       /*
                                         if ( $referenceReceiptId <> '') {
