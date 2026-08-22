@@ -7,6 +7,14 @@ function naCislo (hodnota) {
               return cislo;
 }
 
+function qrPlatbaVynuluj (dovod) {
+              qrPlatbaZrus(dovod);
+              if (document.getElementById('qr_platba')) {document.getElementById('qr_platba').value = 0;}
+              if (document.getElementById('qr_platba_potvrdena')) {document.getElementById('qr_platba_potvrdena').value = "0";}
+              if (document.getElementById('qr_platba_id')) {document.getElementById('qr_platba_id').value = "";}
+              qrStav("QR platba nie je aktívna.");
+}
+
 // prepise ciarku na bodku priamo v policku formulara a vrati cislo
 function cisloZPolicka (policko) {
               if (!policko) {return 0;}
@@ -16,6 +24,7 @@ function cisloZPolicka (policko) {
 }
 
 function platbaKartou () {
+              qrPlatbaVynuluj("prepínam na inú platbu");
               var celaSuma = naCislo(suma.value);
               console.log(celaSuma);
               var zlava_sum = naCislo(zlava_suma.value);
@@ -40,6 +49,135 @@ function platbaKartou () {
                   //hotovost.focus();
               }
 
+}
+
+var qrPlatbaPolling = null;
+var qrPlatbaPrebieha = false;
+
+function qrStav (sprava) {
+              var stav = document.getElementById('qr_status');
+              if (stav) {stav.innerHTML = sprava;}
+}
+
+function qrPlatbaZrus (dovod) {
+              if (qrPlatbaPolling) {
+                    clearTimeout(qrPlatbaPolling);
+                    qrPlatbaPolling = null;
+              }
+              qrPlatbaPrebieha = false;
+              if (dovod) {console.log("QR stop: " + dovod);}
+}
+
+function qrSumaNaUhradu () {
+              var celaSuma = naCislo(suma.value);
+              var zlava_sum = naCislo(zlava_suma.value);
+              var zaokruhli = naCislo(zaokruhlenie.value);
+              var spolu = (Math.round((celaSuma - zlava_sum + zaokruhli) * 100)) / 100;
+              if (spolu < 0) {spolu = 0;}
+              return spolu;
+}
+
+function qrApi (data, callback) {
+              try {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "kasa_displej_portos.php", true);
+                    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                    xhr.onreadystatechange = function () {
+                              if (xhr.readyState === 4) {
+                                    var odpoved = null;
+                                    try {odpoved = JSON.parse(xhr.responseText);} catch (e) {odpoved = null;}
+                                    callback(xhr.status, odpoved, xhr.responseText);
+                              }
+                    };
+                    xhr.send(data);
+              } catch (e) {
+                    callback(0, null, String(e));
+              }
+}
+
+function qrPlatba () {
+              if (qrPlatbaPrebieha) {
+                    alert("QR platba už prebieha.");
+                    return;
+              }
+
+              var oIDpole = document.getElementById("oID");
+              if (!oIDpole || !oIDpole.value) {
+                    alert("Nie je dostupné číslo objednávky (oID).");
+                    return;
+              }
+
+              var sumaNaUhradu = qrSumaNaUhradu();
+              if (sumaNaUhradu <= 0) {
+                    alert("Suma pre QR platbu musí byť väčšia ako 0.");
+                    return;
+              }
+
+              qrPlatbaZrus();
+              qrPlatbaPrebieha = true;
+              qrStav("Spúšťam QR platbu, čakaj...");
+              var qrPotvrdena = document.getElementById('qr_platba_potvrdena');
+              if (qrPotvrdena) {qrPotvrdena.value = "0";}
+
+              var data = "akcia=qr_start&oID=" + encodeURIComponent(oIDpole.value) + "&suma=" + encodeURIComponent(sumaNaUhradu);
+              qrApi(data, function (status, odpoved) {
+                    if (status !== 200 || !odpoved || !odpoved.success) {
+                          qrPlatbaZrus("start failed");
+                          qrStav("QR platbu sa nepodarilo spustiť.");
+                          alert("QR platbu sa nepodarilo spustiť.\n" + (odpoved && odpoved.stav ? odpoved.stav : ""));
+                          return;
+                    }
+
+                    var qrId = "";
+                    if (odpoved.data) {
+                          if (odpoved.data.payment_id) {qrId = odpoved.data.payment_id;}
+                          else if (odpoved.data.id) {qrId = odpoved.data.id;}
+                    }
+                    var qrIdPole = document.getElementById('qr_platba_id');
+                    if (qrIdPole) {qrIdPole.value = qrId;}
+                    qrStav("QR kód zobrazený na zákazníckom displeji. Čakám na potvrdenie platby...");
+                    qrPlatbaKontrola();
+              });
+}
+
+function qrPlatbaKontrola () {
+              if (!qrPlatbaPrebieha) {return;}
+              var oIDpole = document.getElementById("oID");
+              if (!oIDpole || !oIDpole.value) {
+                    qrPlatbaZrus("missing oid");
+                    qrStav("QR platba zastavená - chýba oID.");
+                    return;
+              }
+
+              var qrIdPole = document.getElementById('qr_platba_id');
+              var platbaId = qrIdPole ? qrIdPole.value : '';
+              var data = "akcia=qr_status&oID=" + encodeURIComponent(oIDpole.value) + "&platba_id=" + encodeURIComponent(platbaId);
+              qrApi(data, function (status, odpoved) {
+                    if (!qrPlatbaPrebieha) {return;}
+                    if (status !== 200 || !odpoved || !odpoved.success) {
+                          qrStav("Čakám na potvrdenie QR platby...");
+                          qrPlatbaPolling = setTimeout(qrPlatbaKontrola, 3000);
+                          return;
+                    }
+
+                    if (odpoved.paid) {
+                          qrPlatbaZrus("paid");
+                          var qrSuma = qrSumaNaUhradu();
+                          karta.value = 0;
+                          hotovost.value = 0;
+                          hotovost_ma_dat.value = 0;
+                          zaokruhlenie.value = 0;
+                          vydavok.value = 'NIE';
+                          if (document.getElementById('qr_platba')) {document.getElementById('qr_platba').value = qrSuma;}
+                          if (document.getElementById('qr_platba_potvrdena')) {document.getElementById('qr_platba_potvrdena').value = "1";}
+                          qrStav("Platba QR potvrdená. Tlačím doklad...");
+                          generujBlocek(false);
+                          return;
+                    }
+
+                    qrStav("Čakám na potvrdenie QR platby...");
+                    qrPlatbaPolling = setTimeout(qrPlatbaKontrola, 3000);
+              });
 }
         
 function OtvorZasuvku() {
@@ -68,7 +206,8 @@ function zmenaHotovosti () {
               var medzisucet_zlava = celaSuma - zlava_sum;
               var v_hotovost = naCislo(hotovost.value);
               var kartou = naCislo(karta.value);
-              var platba = v_hotovost + kartou;
+              var qr = naCislo(document.getElementById('qr_platba') ? document.getElementById('qr_platba').value : 0);
+              var platba = v_hotovost + kartou + qr;
               var zaokruhli = naCislo(zaokruhlenie.value);                  
               var vydaj =  platba - medzisucet_zlava - zaokruhli;
               vydaj = ((Math.round(vydaj * 100)) / 100);
@@ -96,6 +235,8 @@ function faktura() {
 
 function generujBlocek (naEmail) {
                             var premenna_karta = cisloZPolicka(karta);
+                            var qr_pole = document.getElementById('qr_platba');
+                            var premenna_qr = qr_pole ? naCislo(qr_pole.value) : 0;
                             var premenna_hotovost_ma_dat = cisloZPolicka(hotovost_ma_dat);
                             var premenna_hotovost = cisloZPolicka(hotovost);
                             //var premenna_vydavok = vydavok.value;
@@ -104,7 +245,7 @@ function generujBlocek (naEmail) {
                             
                             var premenna_zaokruhlenie = cisloZPolicka(zaokruhlenie);
                             
-                            var platba = premenna_karta + premenna_hotovost - premenna_vydavok;
+                            var platba = premenna_karta + premenna_hotovost + premenna_qr - premenna_vydavok;
                             platba = (Math.round((platba)*100))/100;
                             var celaSuma = naCislo(suma.value);
                             var zlava_sum = naCislo(zlava_suma.value);
@@ -115,6 +256,7 @@ function generujBlocek (naEmail) {
                             console.log("ma dat (hotovosť)= " + premenna_hotovost_ma_dat);
                             console.log("=============================");
                             console.log("karta = " + premenna_karta);
+                            console.log("qr = " + premenna_qr);
                             console.log("hotovost = " + premenna_hotovost);
                             console.log("zaokruhlenie = " + premenna_zaokruhlenie);
                             console.log("vydavok = " + premenna_vydavok);
@@ -139,12 +281,13 @@ function generujBlocek (naEmail) {
 
                          document.getElementById('akcia').value='blocek_generuj';
                          document.getElementById('karta').disabled = false;
+                         if (qr_pole) {qr_pole.disabled = false;}
                          document.getElementById('zlava_p').disabled = false;
                          document.getElementById('zlava_suma').disabled = false;
                          document.getElementById('zapis').submit();
 
                        } else {
-                            alert ('Chyba - suma platieb musí byť zhodná so sumou bločka. Skontrolujte či ste zadali správnu sumu pre platbu kartou!');
+                           alert ('Chyba - suma platieb musí byť zhodná so sumou bločka. Skontrolujte sumy pre hotovosť, kartu alebo QR platbu.');
                        }
 
 
@@ -300,6 +443,7 @@ function dajZlavu(zlava_0) {
                           zlava_p.value = zlava + "%";
                           zlava_suma.value = zlava_sum;
                           posliDisplejZlavu(zlava);
+                          qrPlatbaVynuluj("zmena zľavy");
                           karta.value = 0.00;
                           hotovost.value = ma_dat; 
                           vydavok.value = 'NIE'; 

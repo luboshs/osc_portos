@@ -7,7 +7,7 @@ require('fpdf/fpdf.php');
 require('fpdf/ean13.php');
 require('fpdf/WriteHTML.php');
 
-    $title = 'Mesaèný výpis pokladne - '.$rok.' / '.$mesiac;
+    $title = 'Mesaï¿½nï¿½ vï¿½pis pokladne - '.$rok.' / '.$mesiac;
     $pdf=new PDF_HTML();
     $pdf->AliasNbPages();
     $pdf->SetMargins(24,25,10);
@@ -17,7 +17,7 @@ require('fpdf/WriteHTML.php');
     $pdf->SetTitle($title);
 
     $pdf->AddPage();
-// hlavièka
+// hlaviï¿½ka
   $pdf->SetFont('Arialce','B',12);
   $pdf->Cell(0,5,$title,0,1,'L');
   $pdf->Image('portos/logo_natlac.jpg',150,23,50);
@@ -34,7 +34,7 @@ require('fpdf/WriteHTML.php');
   $pdf->Cell(0,$r_hl,'ATaC s.r.o.',0,1,'L');
 
   $pdf->SetFont('Arialce','',9);
-  $pdf->Cell(0,$r_hl,'Èíslo pokladne:',0,0,'L');
+  $pdf->Cell(0,$r_hl,'ï¿½ï¿½slo pokladne:',0,0,'L');
   $pdf->SetX(60);
   $pdf->SetFont('Arialce','B',9);
   $pdf->Cell(0,$r_hl,$cashRegisterCode,0,1,'L');
@@ -43,7 +43,7 @@ require('fpdf/WriteHTML.php');
   $pdf->Cell(0,$r_hl,'Popis pokladne:',0,0,'L');
   $pdf->SetX(60);
   $pdf->SetFont('Arialce','B',9);
-  $pdf->Cell(0,$r_hl,'pokladòa na predajni - ekasa Portos',0,1,'L');
+  $pdf->Cell(0,$r_hl,'pokladï¿½a na predajni - ekasa Portos',0,1,'L');
 
   $pdf->Ln(2);
 
@@ -51,9 +51,9 @@ require('fpdf/WriteHTML.php');
    $pdf->Image('portos/linajka.gif',25,$YY,175,0.4);
    $pdf->Ln(4);
 
-   // úhrady faktúr
+   // ï¿½hrady faktï¿½r
    $YY_faktury = $pdf->GetY();
-   $pdf->Cell(0,$r_hl,'TRŽBY - ÚHRADY FAKTÚR',0,1,'L');
+   $pdf->Cell(0,$r_hl,'TRï¿½BY - ï¿½HRADY FAKTï¿½R',0,1,'L');
    $pdf->Ln(2);
 
 
@@ -61,11 +61,11 @@ require('fpdf/WriteHTML.php');
     $r1 = 4;
     $pdf->SetX(25);
     $pdf->Cell(9,$r1,'eID',1,0,'C');
-    $pdf->Cell(9,$r1,'Bloèek',1,0,'C');
-    $pdf->Cell(15,$r1,'Dátum',1,0,'C');
-    $pdf->Cell(15,$r1,'È. faktúry',1,0,'C');
+    $pdf->Cell(9,$r1,'Bloï¿½ek',1,0,'C');
+    $pdf->Cell(15,$r1,'Dï¿½tum',1,0,'C');
+    $pdf->Cell(15,$r1,'ï¿½. faktï¿½ry',1,0,'C');
     $pdf->Cell(13,$r1,'Suma',1,0,'C');
-    $pdf->Cell(13,$r1,'Hotovos',1,0,'C');
+    $pdf->Cell(13,$r1,'Hotovosï¿½',1,0,'C');
     $pdf->Cell(13,$r1,'Karta',1,1,'C');
 
     $celkom_suma = 0;
@@ -114,15 +114,15 @@ require('fpdf/WriteHTML.php');
     $XX = 115;
     $pdf->SetX($XX);
     $pdf->SetFont('Arialce','B',9);
-    $pdf->Cell(0,$r_hl,'VÝBERY - na VKLAD DO BANKY',0,1,'L');
+    $pdf->Cell(0,$r_hl,'Vï¿½BERY - na VKLAD DO BANKY',0,1,'L');
     $pdf->Ln(2);
 
     $pdf->SetFont('Arialce','B',7);
     $pdf->SetX($XX);
     $pdf->Cell(9,$r1,'eID',1,0,'C');
-    $pdf->Cell(9,$r1,'Bloèek',1,0,'C');
-    $pdf->Cell(15,$r1,'Dátum',1,0,'C');
-    $pdf->Cell(35,$r1,'Poznámka',1,0,'C');
+    $pdf->Cell(9,$r1,'Bloï¿½ek',1,0,'C');
+    $pdf->Cell(15,$r1,'Dï¿½tum',1,0,'C');
+    $pdf->Cell(35,$r1,'Poznï¿½mka',1,0,'C');
     $pdf->Cell(13,$r1,'Suma',1,0,'C');
     $pdf->Cell(4,$r1,'A',1,1,'C');
 
@@ -177,7 +177,7 @@ require('fpdf/WriteHTML.php');
     }
 
     $pdf->SetFont('Arialce','B',9);
-    $pdf->Cell(0,$r_hl,'MESAÈNÁ INTERVALOVÁ UZÁVIERKA',0,1,'L');
+    $pdf->Cell(0,$r_hl,'MESAï¿½Nï¿½ INTERVALOVï¿½ UZï¿½VIERKA',0,1,'L');
     $pdf->Ln(2);
 
     $l1 = 45;
@@ -188,11 +188,11 @@ require('fpdf/WriteHTML.php');
     $YYM = $pdf->GetY();
     $pdf->SetX(25);
     $pdf->SetFont('Arialce','',9);
-    $pdf->Cell($l1,$r1,'Údaje od: ',1,0,'R');
+    $pdf->Cell($l1,$r1,'ï¿½daje od: ',1,0,'R');
     $pdf->Cell($l2,$r1,$prvy_den,1,1,'C');
 
     $pdf->SetX(25);
-    $pdf->Cell($l1,$r1,'Údaje do: ',1,0,'R');
+    $pdf->Cell($l1,$r1,'ï¿½daje do: ',1,0,'R');
     $pdf->Cell($l2,$r1,$posledny_den,1,1,'C');
     $pdf->Ln($r1);
 
@@ -205,6 +205,7 @@ require('fpdf/WriteHTML.php');
     $dph = 0;
     $hotovost = 0;
     $kartou = 0;
+    $qr = 0;
     $pokladnicne_doklady = 0;
     $faktury = 0;
     $vklad = 0;
@@ -256,9 +257,10 @@ require('fpdf/WriteHTML.php');
              ***"taxBaseSecondReduced":null," 
          */     
               
-              $kartou += $response['request']['data']['payments'][1]['amount'];
+              $kartou += isset($response['request']['data']['payments'][1]['amount']) ? $response['request']['data']['payments'][1]['amount'] : 0;
               //$riadok['platobna_karta'];
-              $hotovost += $response['request']['data']['payments'][0]['amount'];
+              $hotovost += isset($response['request']['data']['payments'][0]['amount']) ? $response['request']['data']['payments'][0]['amount'] : 0;
+              $qr += isset($response['request']['data']['payments'][2]['amount']) ? $response['request']['data']['payments'][2]['amount'] : 0;
               $chyba = false;
               }
 
@@ -315,18 +317,22 @@ require('fpdf/WriteHTML.php');
     $pdf->SetFont('Arialce','',9);
 
     $pdf->SetX(25);
-    $pdf->Cell($l1,$r1,'Platby hotovos:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($hotovost, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'Platby hotovosï¿½:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($hotovost, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->SetX(25);
     $pdf->Cell($l1,$r1,'Platby kartou:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($kartou, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($kartou, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
-    $platby_spolu = $hotovost + $kartou;
+    $pdf->SetX(25);
+    $pdf->Cell($l1,$r1,'Platby QR:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($qr, 2, ',', ' ').' ï¿½ ',1,1,'R');
+
+    $platby_spolu = $hotovost + $kartou + $qr;
     $pdf->SetX(25);
     $pdf->SetFont('Arialce','',9);
     $pdf->Cell($l1,$r1,'Platby CELKOM:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($platby_spolu, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($platby_spolu, 2, ',', ' ').' ï¿½ ',1,1,'R');
     $pdf->SetFont('Arialce','',9);
 
     $pdf->Ln($r1);
@@ -334,42 +340,42 @@ require('fpdf/WriteHTML.php');
     $pdf->SetX(25);
     $string = 'Vklady ('.$qVklady.'x):';
     $pdf->Cell($l1,$r1,$string,1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($vklad, 2, ',', ' ').' €',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($vklad, 2, ',', ' ').' ï¿½',1,1,'R');
 
     $pdf->SetX(25);
-    $string = 'Výbery ('.$qVybery.'x):';
+    $string = 'Vï¿½bery ('.$qVybery.'x):';
     $pdf->Cell($l1,$r1,$string,1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($vyber, 2, ',', ' ').' €',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($vyber, 2, ',', ' ').' ï¿½',1,1,'R');
 
 
     $pdf->SetY($YYM);
     $pdf->SetX($XX);
 
     $pdf->SetFont('Arialce','B',9);
-    $pdf->Cell($l3,$r1,'ZÁKLAD PRE DPH',1,1,'C');
-    //$pdf->Cell($l2,$r1,number_format ($bez_dph1, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l3,$r1,'Zï¿½KLAD PRE DPH',1,1,'C');
+    //$pdf->Cell($l2,$r1,number_format ($bez_dph1, 2, ',', ' ').' ï¿½ ',1,1,'R');
     $pdf->SetFont('Arialce','',9);
 
     $pdf->SetX($XX);
-    $pdf->Cell($l1,$r1,'Základná sadzba:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($bez_dph1, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'Zï¿½kladnï¿½ sadzba:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($bez_dph1, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->SetX($XX);
-    $pdf->Cell($l1,$r1,'Znížená sadzba:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($bez_dph2, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'Znï¿½enï¿½ sadzba:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($bez_dph2, 2, ',', ' ').' ï¿½ ',1,1,'R');
     
     $pdf->SetX($XX);
-    $pdf->Cell($l1,$r1,'2. znížená sadzba:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($bez_dph2_2, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'2. znï¿½enï¿½ sadzba:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($bez_dph2_2, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->SetX($XX);
     $pdf->Cell($l1,$r1,'Nepodlieha dani:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($bez_dph3, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($bez_dph3, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->SetX($XX);
     $bez_dph = $bez_dph1 + $bez_dph2 + $bez_dph2_2 + $bez_dph3;
-    $pdf->Cell($l1,$r1,'SPOLU základ:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($bez_dph, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'SPOLU zï¿½klad:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($bez_dph, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->Ln($r1);
 
@@ -379,21 +385,21 @@ require('fpdf/WriteHTML.php');
     $pdf->SetFont('Arialce','',9);
 
     $pdf->SetX($XX);
-    $pdf->Cell($l1,$r1,'Základná sadzba DPH:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($vat_zakladna, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'Zï¿½kladnï¿½ sadzba DPH:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($vat_zakladna, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->SetX($XX);
-    $pdf->Cell($l1,$r1,'Znížená sadzba DPH:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($vat_znizena, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'Znï¿½enï¿½ sadzba DPH:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($vat_znizena, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->SetX($XX);
-    $pdf->Cell($l1,$r1,'2. znížená sadzba DPH:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($vat_znizena2, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l1,$r1,'2. znï¿½enï¿½ sadzba DPH:',1,0,'R');
+    $pdf->Cell($l2,$r1,number_format ($vat_znizena2, 2, ',', ' ').' ï¿½ ',1,1,'R');
     
     
     $pdf->SetX($XX);
     $pdf->Cell($l1,$r1,'DPH SPOLU:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($dph, 2, ',', ' ').' € ',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($dph, 2, ',', ' ').' ï¿½ ',1,1,'R');
 
     $pdf->Ln($r1);
 
@@ -403,26 +409,26 @@ require('fpdf/WriteHTML.php');
     $pdf->SetFont('Arialce','',9);
 
     $pdf->SetX($XX);
-    $string = 'Pokladnièné doklady ('.$qBlocky.'x):';
+    $string = 'Pokladniï¿½nï¿½ doklady ('.$qBlocky.'x):';
     $pdf->Cell($l1,$r1,$string,1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($pokladnicne_doklady, 2, ',', ' ').' €',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($pokladnicne_doklady, 2, ',', ' ').' ï¿½',1,1,'R');
 
     $pdf->SetX($XX);
-    $string = 'Úhrady faktúr ('.$qFaktury.'x):';
+    $string = 'ï¿½hrady faktï¿½r ('.$qFaktury.'x):';
     $pdf->Cell($l1,$r1,$string,1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($faktury, 2, ',', ' ').' €',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($faktury, 2, ',', ' ').' ï¿½',1,1,'R');
 
     $trzby = $pokladnicne_doklady + $faktury;
     $pdf->SetX($XX);
     $pdf->Cell($l1,$r1,'Obraty SPOLU:',1,0,'R');
-    $pdf->Cell($l2,$r1,number_format ($trzby, 2, ',', ' ').' €',1,1,'R');
+    $pdf->Cell($l2,$r1,number_format ($trzby, 2, ',', ' ').' ï¿½',1,1,'R');
 
 
 
     $pdf->AddPage();
     //$blocek     = array($riadok['eID'],$riadok['oID'],$riadok['client_name'],$riadok['date'],$riadok['amount'],$riadok['vat']);
      $pdf->SetFont('Arialce','B',9);
-    $pdf->Cell($l1,$r1,'Výpis dokladov',0,1,'L');
+    $pdf->Cell($l1,$r1,'Vï¿½pis dokladov',0,1,'L');
     $pdf->Ln(2);
     $pdf->SetFont('Arialce','',7);
     $arrayLength = count($blocky);

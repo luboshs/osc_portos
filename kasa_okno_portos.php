@@ -590,8 +590,10 @@
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
                     $novy_zostatok  =   $zostatok + $hotovost;
                     if (isset($_POST["karta"])) {$platba_kartou=ekasa_cislo($_POST["karta"]);} else {$platba_kartou=0;}
+                   if (isset($_POST["qr_platba"])) {$platba_qr=ekasa_cislo($_POST["qr_platba"]);} else {$platba_qr=0;}
+                   $qr_platba_potvrdena = (isset($_POST["qr_platba_potvrdena"]) && $_POST["qr_platba_potvrdena"] == '1') ? true : false;
                //   príprava premenných pre doklad     
-                    include ('portos/ekasa_priprav_data.php');
+                   include ('portos/ekasa_priprav_data.php');
             // ========>
             // ========>  premenné => požiadavka
                     echo '<br /><br />';
@@ -670,7 +672,7 @@
                                                 'vat' => tep_db_prepare_input($vat),
                                                 'hotovost_kredit' => tep_db_prepare_input($hotovost_kredit),
                                                 'hotovost_debit' => tep_db_prepare_input($hotovost_debit),
-                                                'platobna_karta'  => tep_db_prepare_input($platba_kartou),
+                                                'platobna_karta'  => tep_db_prepare_input($platba_kartou + $platba_qr),
                                                 'hotovost_zostatok' => tep_db_prepare_input($novy_zostatok),
                                                 'response' => $response_json,
                                                 'error' => tep_db_prepare_input($error),
@@ -690,14 +692,18 @@
                    $sql_order = tep_db_query("update orders set orders_status = 2, last_modified = now(), blocek = '" . (int)$eID . "' where orders_id = '" . (int)$oID . "'");
                    $komentar = "ekasa/CHDU portos - objednávka uzavretá a vyúčtovaná pokladničným bločkom v celkovej sume ".$amount." €"."\n"." (zaokrúhlenie: ".$roundingAmount.")";
                    if ($zlava_pritomna) {$komentar .= "\n\n" . "ZĽAVA: ". $zlava_m . " € [".$_POST["zlava_p"]."]";}
-                   $komentar .= "\n\nPlatidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
+                  $komentar .= "\n\nPlatidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nQR platba= ".$platba_qr."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
                    $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input(ekasa_do_db($komentar)) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
                 } else {
                    //$sql_order = tep_db_query("update orders set orders_status = 2, last_modified = now(), blocek = '" . (int)$eID . "' where orders_id = '" . (int)$oID . "'");
                    $komentar = "ekasa/CHDU portos - chyba pri tlači bločka"."\n\n".$response_json."\n\n";
                    if ($zlava_pritomna) {$komentar .= "\n\n" . "ZĽAVA: ". $zlava_m . " € [".$_POST["zlava_p"]."]";}
-                   $komentar .= "\n\nPlatidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
+                  $komentar .= "\n\nPlatidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nQR platba= ".$platba_qr."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
                    $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input(ekasa_do_db($komentar)) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
+                }
+
+                if ($isSuccessful && $qr_platba_potvrdena) {
+                    ekasa_displej_thank_you($oID);
                 }
 
 
@@ -737,6 +743,16 @@
                                                     echo '<td>';
                                                     echo '</td>';
                                                     echo '</tr>';         
+
+                                                    echo '<tr>';
+                                                    echo '<td>QR platba:</td>';
+                                                    echo '<td>';
+                                                    $qr_sql = isset($_POST["qr_platba"]) ? ekasa_cislo($_POST["qr_platba"]) : 0;
+                                                    echo '<input type="text" name="qr_platba" readonly disabled value="'.$qr_sql.'"  style="font-size: 25pt" size="8">';
+                                                    echo '</td>';
+                                                    echo '<td>';
+                                                    echo '</td>';
+                                                    echo '</tr>';
                                                     
                                                     echo '<tr>';
                                                     echo '<td>ZAOKR&Uacute;HLENIE:</td>';
@@ -1054,7 +1070,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<button type="button" onclick="location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
+                        echo '<button type="button" onclick="qrPlatbaVynuluj('."'hotovosť'".'); location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
                         echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button>';
                         echo '</td>';
                         echo '<td>';                                                                                                        
@@ -1231,8 +1247,9 @@
                         echo '</td>';
                         echo '<td>';
                          echo '<input type="hidden" name="email" value="" id="email">'; //nemá funkciu, volá ho však javascript
-                        echo '<button type="button" onclick="location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
-                        echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button>';
+                        echo '<button type="button" onclick="qrPlatbaVynuluj('."'hotovosť'".'); location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
+                        echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button> &nbsp';
+                        echo '<button type="button" onclick="location.hash = '."'#QrStatusTR'".'; qrPlatba();" class="button_platba">QR <br />PLATBA</button>';
                         echo '</td>';
                         echo '<td>';                                                                                                        
                         echo '</td>';
@@ -1253,6 +1270,21 @@
                         
                         echo '</td>';
                         echo '</tr>';         
+
+                        echo '<tr id="QrPlatbaTR">';
+                        echo '<td>QR platba:</td>';
+                        echo '<td>';
+                        echo '<input type="text" name="qr_platba" value="0" id="qr_platba" readonly style="font-size: 25pt" size="8">';
+                        echo '</td>';
+                        echo '<td>';
+                        echo '<button type="button" onclick="qrPlatba();" class="button_karta">SPUSTI&#356; QR PLATBU</button>';
+                        echo '</td>';
+                        echo '</tr>';
+
+                        echo '<tr id="QrStatusTR">';
+                        echo '<td>Stav QR:</td>';
+                        echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
+                        echo '</tr>';
                      
                         echo '<tr id="HotovostTR">';
                         echo '<td>HOTOVOS&#356;:</td>';
@@ -1305,6 +1337,8 @@
                         echo '<input type="hidden" name="nakup" value="'.$nakup.'">';
                         echo '<input type="hidden" name="akcia" value="" id="akcia">';
                         echo '<input type="hidden" name="hotovost_ma_dat" value="'.$medzisucet.'" id="hotovost_ma_dat">';                        
+                        echo '<input type="hidden" name="qr_platba_id" id="qr_platba_id" value="">';
+                        echo '<input type="hidden" name="qr_platba_potvrdena" id="qr_platba_potvrdena" value="0">';
                         echo '<input type="hidden" id="zlava_zaklad" value="'.ekasa_html($medzisucet).'">';
                         echo '<input type="hidden" id="zlava_polozky" value="'.ekasa_html(json_encode(array(array('unitPrice' => $cena, 'quantity' => $pocet)))).'">';
                         
@@ -1378,7 +1412,8 @@
                         echo '</td>';
                         echo '<td>';
                         echo '<button type="button" onclick="location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
-                        echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button>';
+                        echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button> &nbsp';
+                        echo '<button type="button" onclick="location.hash = '."'#QrStatusTR'".'; qrPlatba();" class="button_platba">QR <br />PLATBA</button>';
                         echo '</td>';
                         echo '<td>';                                                                                                        
             //          echo '<button type="button" onclick="window.close();" class="button_zrusit">ZAVRIEŤ OKNO</button>';
@@ -1402,6 +1437,21 @@
                         
                         echo '</td>';
                         echo '</tr>';         
+
+                        echo '<tr id="QrPlatbaTR">';
+                        echo '<td>QR platba:</td>';
+                        echo '<td>';
+                        echo '<input type="text" name="qr_platba" value="0" id="qr_platba" readonly style="font-size: 25pt" size="8">';
+                        echo '</td>';
+                        echo '<td>';
+                        echo '<button type="button" onclick="qrPlatba();" class="button_karta">SPUSTI&#356; QR PLATBU</button>';
+                        echo '</td>';
+                        echo '</tr>';
+
+                        echo '<tr id="QrStatusTR">';
+                        echo '<td>Stav QR:</td>';
+                        echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
+                        echo '</tr>';
            
 
                         
@@ -1508,6 +1558,8 @@
                         echo '<input type="hidden" name="nakup" value="'.$nakup.'">';
                         echo '<input type="hidden" name="akcia" value="" id="akcia">';
                         echo '<input type="hidden" name="hotovost_ma_dat" value="'.$medzisucet.'" id="hotovost_ma_dat">';                        
+                        echo '<input type="hidden" name="qr_platba_id" id="qr_platba_id" value="">';
+                        echo '<input type="hidden" name="qr_platba_potvrdena" id="qr_platba_potvrdena" value="0">';
                         echo '<input type="hidden" id="zlava_zaklad" value="'.ekasa_html($zlava_zaklad).'">';
                         echo '<input type="hidden" id="zlava_polozky" value="'.ekasa_html(json_encode($zlava_polozky)).'">';
                         
