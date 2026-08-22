@@ -214,7 +214,7 @@
        // ale ako nefiškálny text v pätičke dokladu (ekasa_priprav_data.php)
        $info_text = '';
        if ($celkova_usporena > 0) {
-          $info_text = sprintf("Celkovo ste usetrili: %.2f EUR", $celkova_usporena);
+          $info_text = sprintf("Celkovo ste ušetrili: %.2f EUR", $celkova_usporena);
        }
 
 
@@ -255,7 +255,7 @@
                                            $zlava_pritomna   = true;
                                            $celkova_usporena = abs($discount_price);
                                            $zlava_m          = $celkova_usporena;
-                                           $info_text        = sprintf("Celkovo ste usetrili: %.2f EUR", $celkova_usporena);
+                                           $info_text        = sprintf("Celkovo ste ušetrili: %.2f EUR", $celkova_usporena);
                                    }
                            }
                            $poznamkaInterna = $name; 
