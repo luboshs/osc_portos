@@ -2,7 +2,7 @@
 //  ****************************************************************
 //  ******* zákaznícky displej (ATaC display API) ******************
 //  ****************************************************************
-//  ****** verzia 1.03 *********************************************
+//  ****** verzia 1.04 *********************************************
 //  ****************************************************************
 //  Obálka nad integračnými skriptami displeja, ktoré sú uložené
 //  priamo v adresári admin/ (staršie inštalácie ich môžu mať
@@ -26,7 +26,7 @@
 //  takže pri volaní okna kasy s ?diag=1 je vidieť, prečo sa nič neposlalo.
 
        // verzia obálky displeja - v diagnostike je vidieť, či server beží aktuálny súbor
-       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.03'); }
+       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.04'); }
 
        // poznámka o poslednom volaní displeja (pre diagnostiku)
        if (!function_exists('ekasa_displej_stav')) {
@@ -77,6 +77,27 @@
                  }
                  ekasa_displej_stav('integračný skript '.$subor.' sa nenašiel ('.implode(', ', $cesty).')');
                  return false;
+       }
+       }
+
+       // pomocné volanie funkcie integračného skriptu - skúsi viac názvov
+       if (!function_exists('ekasa_displej_volanie')) {
+       function ekasa_displej_volanie ($subor, $funkcie, $argumenty, $nazov_akcie) {
+                if (!ekasa_displej_nacitaj($subor)) { return array('success' => false, 'source' => null, 'result' => null); }
+                if (!is_array($funkcie)) { $funkcie = array($funkcie); }
+
+                foreach ($funkcie as $funkcia) {
+                        if (function_exists($funkcia)) {
+                                $vysledok = call_user_func_array($funkcia, $argumenty);
+                                $ok = true;
+                                if ($vysledok === false || $vysledok === null || $vysledok === '' || (is_array($vysledok) && count($vysledok) === 0)) { $ok = false; }
+                                ekasa_displej_stav($nazov_akcie.': '.$funkcia.' = '.($ok ? 'OK' : 'neúspech'));
+                                return array('success' => $ok, 'source' => $funkcia, 'result' => $vysledok);
+                        }
+                }
+
+                ekasa_displej_stav($nazov_akcie.': nenašla sa žiadna integračná funkcia ('.implode(', ', $funkcie).')');
+                return array('success' => false, 'source' => null, 'result' => null);
        }
        }
 
@@ -137,6 +158,86 @@
                  $vysledok = atac_pos_preview_order($oID);
                  ekasa_displej_stav('atac_pos_preview_order('.$oID.') = '.($vysledok ? 'OK' : 'neúspech'));
                  return $vysledok;
+       }
+       }
+
+       // spustenie QR platby na zákazníckom displeji
+       if (!function_exists('ekasa_displej_qr_start')) {
+       function ekasa_displej_qr_start ($oID, $suma) {
+                $oID = (int)$oID;
+                $suma = (float)$suma;
+                if ($oID <= 0 || $suma <= 0) {
+                        ekasa_displej_stav('QR štart sa neodoslal - chýba oID alebo suma');
+                        return array('success' => false, 'data' => array());
+                }
+
+                $volanie = ekasa_displej_volanie(
+                        'oscommerce_bridge.php',
+                        array('atac_pos_qr_start', 'atac_display_qr_start', 'atac_qr_payment_start', 'atac_display_qr_payment_start'),
+                        array($oID, $suma),
+                        'QR štart'
+                );
+
+                $data = array('oID' => $oID, 'amount' => $suma);
+                if (is_array($volanie['result'])) { $data = array_merge($data, $volanie['result']); }
+                return array('success' => ($volanie['success'] ? true : false), 'data' => $data);
+       }
+       }
+
+       // kontrola stavu QR platby
+       if (!function_exists('ekasa_displej_qr_status')) {
+       function ekasa_displej_qr_status ($oID, $platba_id) {
+                $oID = (int)$oID;
+                if ($oID <= 0) {
+                        ekasa_displej_stav('QR status sa neoveril - chýba oID');
+                        return array('success' => false, 'paid' => false, 'data' => array());
+                }
+
+                $volanie = ekasa_displej_volanie(
+                        'oscommerce_bridge.php',
+                        array('atac_pos_qr_status', 'atac_display_qr_status', 'atac_qr_payment_status', 'atac_display_qr_payment_status'),
+                        array($oID, $platba_id),
+                        'QR status'
+                );
+
+                $vysledok = $volanie['result'];
+                $paid = false;
+                if (is_array($vysledok)) {
+                        if (!empty($vysledok['paid'])) { $paid = true; }
+                        if (isset($vysledok['status']) && is_string($vysledok['status'])) {
+                                $stav = strtolower(trim($vysledok['status']));
+                                if ($stav === 'paid' || $stav === 'confirmed' || $stav === 'success') { $paid = true; }
+                        }
+                } elseif ($vysledok === true) {
+                        $paid = true;
+                }
+
+                return array('success' => ($volanie['success'] ? true : false), 'paid' => ($paid ? true : false), 'data' => (is_array($vysledok) ? $vysledok : array()));
+       }
+       }
+
+       // prepnutie zákazníckeho displeja na thank_you režim
+       if (!function_exists('ekasa_displej_thank_you')) {
+       function ekasa_displej_thank_you ($oID) {
+                $oID = (int)$oID;
+                $volanie = ekasa_displej_volanie(
+                        'display_thank_you.php',
+                        array('atac_display_thank_you', 'atac_pos_thank_you', 'atac_customer_display_thank_you'),
+                        array($oID),
+                        'thank_you'
+                );
+
+                if (!$volanie['success']) {
+                        // fallback cez oscommerce_bridge.php, ak je implementované v hlavnom bridge skripte
+                        $volanie = ekasa_displej_volanie(
+                                'oscommerce_bridge.php',
+                                array('atac_display_thank_you', 'atac_pos_thank_you', 'atac_customer_display_thank_you'),
+                                array($oID),
+                                'thank_you'
+                        );
+                }
+
+                return ($volanie['success'] ? true : false);
        }
        }
 ?>

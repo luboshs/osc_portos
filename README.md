@@ -39,11 +39,18 @@ v režime SHOPPING vo fáze `preview` (pôvodné ceny) a po zadaní zľavy tlač
 po zľave pri každej položke; položky s konečnou cenou [KC] displej označí ako
 nezľavniteľné).
 
+V okne kasy je aj tretí spôsob platby **QR PLATBA**:
+
+- tlačidlo **QR PLATBA** spustí API volanie na zákaznícky displej, kde sa zobrazí QR kód,
+- kasa periodicky overuje stav platby (`qr_status`),
+- po potvrdení platby kasa automaticky vytlačí doklad a odošle na displej režim `thank_you`.
+
 - `portos/ekasa_displej.php` – obálka nad integračnými skriptami displeja
   (`ekasa_displej_nakup()` → najprv `atac_display_send_order()` z `oscommerce_edit_orders.php`
   – rovnaké volanie ako v `admin/edit_orders.php` – a až potom `atac_pos_preview_order()`,
-  `ekasa_displej_zlava()` → `atac_pos_discount_order()` / `atac_pos_preview_order()`),
-- `kasa_displej_portos.php` – AJAX endpoint, ktorý kasa volá po zadaní zľavy,
+  `ekasa_displej_zlava()` → `atac_pos_discount_order()` / `atac_pos_preview_order()`,
+  `ekasa_displej_qr_start()` / `ekasa_displej_qr_status()` / `ekasa_displej_thank_you()`),
+- `kasa_displej_portos.php` – AJAX endpoint pre zľavu aj QR akcie (`qr_start`, `qr_status`, `qr_cancel`, `thank_you`),
 - `posliDisplejZlavu()` v `portos/ekasa_skripty.js` – odoslanie zľavy z prehliadača.
 
 Predpoklad: súbory `oscommerce_bridge.php`, `oscommerce_edit_orders.php` a
