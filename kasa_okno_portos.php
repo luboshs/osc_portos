@@ -1306,6 +1306,9 @@
                      // po načítaní okna kasy pošli nákup na zákaznícky displej
                      // (režim SHOPPING, fáza preview - pôvodné ceny)
                         ekasa_displej_nakup($oID);
+                     // výsledok sa vždy zapíše aj do HTML komentára (Ctrl+U), aby sa dalo
+                     // jednoducho overiť, či a prečo sa na displej niečo poslalo
+                        echo "\n".'<!-- displej: '.htmlspecialchars(str_replace('--', '-', isset($GLOBALS['ekasa_displej_log']) ? implode(' | ', $GLOBALS['ekasa_displej_log']) : 'funkcia sa nezavolala'), ENT_QUOTES, 'UTF-8').' -->'."\n";
 
                         echo '<table>';
 
