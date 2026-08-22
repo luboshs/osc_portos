@@ -13,7 +13,7 @@
               
      // zistenie POST / GET dát
         if (isset($_GET["faktura"])) {$faktura=true;} else {$faktura=false;}
-        $akcia = (isset($HTTP_GET_VARS['akcia']) ? $HTTP_GET_VARS['akcia'] : $HTTP_POST_VARS['akcia']);
+        $akcia = (isset($HTTP_GET_VARS['akcia']) ? $HTTP_GET_VARS['akcia'] : (isset($HTTP_POST_VARS['akcia']) ? $HTTP_POST_VARS['akcia'] : ''));
 
         switch ($akcia) {
 
@@ -28,8 +28,9 @@
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=$_POST["hotovost_ma_dat"];} else {$hotovost=0;}
                     $platba_kartou  =   $_POST["karta"];  
                     if (isset($_POST["karta"])) {$platba_kartou=$_POST["karta"];} else {$platba_kartou=0;}
-               //   príprava premenných pre doklad     
-                    include ('portos/ekasa_priprav_data.php'); 
+               //   príprava premenných pre doklad
+                   include ('portos/ekasa_polozky.php');
+                   include ('portos/ekasa_priprav_data.php');
             // ========>
             // ========>
                     print("<pre>".print_r($data_array,true)."</pre>");
@@ -269,7 +270,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br /><br />';
+                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br />';
                         echo '</td>';
                         echo '<td>';
                         echo '';
@@ -333,19 +334,23 @@
                         echo '</tr>';       
            
            
-           /*  dorobiť možnosť posielať bloček na email                                   
+
+                        // Funkcia email na doklad bola deaktivovaná
+                        // Používateľ si môže vytlačiť doklad alebo poslať manuálne
+                        
+            /* ZRUŠENÉ - EMAIL FUNKCIA DEAKTIVOVANÁ
                         $email = $order->customer['email_address'];
                         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                                echo '<tr id="email_tr">';
-                                echo '<td>Email:</td>';
+                               echo '<tr id="email_tr">';
+                               echo '<td>Email:</td>';
                                 echo '<td>';
-                                echo 'V objednávke je zadaný email, <b>spýtaj sa zákazníka, či chce bloček vytlačiť alebo poslať na email?</b><br />Email je potrebné skontrolovať. Bloček nie je možné zaslať opakovane, ani ho neskôr vytlačiť.<br /><br />';
-                                echo '<input type="text" name="email" value="'.$email.'" style="font-size: 12pt" size="30"  id = "email">';
-                                echo '</td>';
-                                echo '<td>';
-                            //    echo '<button type="button" onclick="generujBlocek('.$oID.');" class="button_blocek">GENERUJ BLOČEK</button>';
-                                echo '</td>';
-                                echo '</tr>';                              
+                               echo 'V objednávke je zadaný email, <b>spýtaj sa zákazníka, či chce bloček vytlačiť alebo poslať na email?</b><br />Email je potrebné skontrolovať. Bloček nie je možné zaslať opakovane, ani ho neskôr vytlačiť.<br /><br />';
+                               echo '<input type="text" name="email" value="'.$email.'" style="font-size: 12pt" size="30"  id = "email">';
+                               echo '</td>';
+                               echo '<td>';
+                           //    echo '<button type="button" onclick="generujBlocek(true);" class="button_blocek">DOKLAD NA EMAIL</button>';
+                               echo '</td>';
+                               echo '</tr>';                              
                         }          
             */
 

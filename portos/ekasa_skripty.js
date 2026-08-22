@@ -213,21 +213,23 @@ function stiahni(oID) {
 
 function dajZlavu(zlava_0) {
      
-     var zlava = prompt ("Akú percentuálnu chcete pridať?\n(možno zadať iba hodnoty 0, 3, 5, 7 a 10)",zlava_0);
+     var zlava = prompt ("Akú percentuálnu zľavu chcete pridať?\n(možno zadať hodnoty od 1 do 15 %)",zlava_0);
    
-       if ((zlava == 0)|(zlava == 3)|(zlava==5)|(zlava==7)|(zlava==10)) {
+       zlava = naCislo(zlava);
+        
+       if (zlava >= 1 && zlava <= 15) {
                            
                           var celkom = naCislo(suma.value);
                           var zlava_sum = 0.01;
-                          
+                           
                           zlava_sum = celkom * zlava;
                           zlava_sum = Math.round(zlava_sum);
                           zlava_sum = zlava_sum / 100;
-                          
+                           
                           var ma_dat = (Math.round((celkom - zlava_sum)*100))/100;
-                          
+                           
                      //   alert (ma_dat);
-                          
+                           
                           zlava_p.value = zlava + "%";
                           zlava_suma.value = zlava_sum;
                           karta.value = 0.00;
@@ -235,14 +237,14 @@ function dajZlavu(zlava_0) {
                           vydavok.value = 'NIE'; 
                           hotovost_ma_dat.value  = ma_dat;
                      //   hotovost.focus();
-                     
+                      
                         var zaokruhli = zaokruhlit(ma_dat);
                         zaokruhlenie.value = zaokruhli;
+                             
                             
-                           
                        } 
-       else           {alert ("Nesprávna hodnota!\nMožno zadať iba zľavu v určitej hodnote %.");}
-}   
+       else           {alert ("Nesprávna hodnota!\nMožno zadať iba zľavu od 1 do 15 %.");}
+}
 
 
 function zaokruhlit (vstup) {
