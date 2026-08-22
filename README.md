@@ -54,14 +54,14 @@ neprerušia. Dôvod neúspechu sa zapíše do `$GLOBALS['ekasa_displej_stav']`.
 
 ### Ako otestovať displej
 
-1. **HTML komentár** – otvor `kasa_okno_portos.php?oID=51668`, daj Ctrl+U (zdroj stránky)
+1. **HTML komentár** – otvor `kasa_okno_portos.php?oID=…`, daj Ctrl+U (zdroj stránky)
    a nájdi riadok `<!-- displej: … -->`. Je v ňom, ktorý integračný skript sa načítal
    a či volanie skončilo `OK` alebo `neúspech` (prípadne že sa súbor nenašiel – vypíšu sa
    všetky prehľadané cesty).
 2. **Diagnostika na stránke** – to isté sa vypíše aj priamo v okne kasy pri otvorení
-   `kasa_okno_portos.php?oID=51668&diag=1`.
+   `kasa_okno_portos.php?oID=…&diag=1`.
 3. **Zľava** – v okne kasy stlač **ZADAJ ZĽAVU**, zadaj napr. 10 a v konzole prehliadača
    (F12 → Console) sa vypíše odpoveď endpointu `kasa_displej_portos.php`, ktorá okrem
    `success` obsahuje aj pole `stav` s dôvodom neúspechu.
 4. **Endpoint samostatne** – dá sa zavolať aj priamo (prihlásený do adminu):
-   `curl -b "osCAdminID=…" -d "oID=51668&zlava_p=10" https://…/admin/kasa_displej_portos.php`
+   `curl -b "osCAdminID=…" -d "oID=…&zlava_p=10" https://…/admin/kasa_displej_portos.php`
