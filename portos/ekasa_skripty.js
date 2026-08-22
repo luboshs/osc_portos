@@ -1,9 +1,11 @@
 // Pokladnik moze zadat sumu s desatinnou ciarkou - vzdy ju prepiseme na bodku
+// Vracia null ak je vstup neplatny (nie prazdny - prazdny vracia 0)
 function naCislo (hodnota) {
               if (hodnota === null || hodnota === undefined) {return 0;}
               var text = String(hodnota).replace(/\s/g, "").replace(/,/g, ".");
+              if (text === "") {return 0;}
               var cislo = Number(text);
-              if (isNaN(cislo)) {return 0;}
+              if (isNaN(cislo)) {return null;}
               return cislo;
 }
 
@@ -25,6 +27,7 @@ function platbaKartou () {
               var kartou = prompt("Aká suma bola zaplatená terminálom?",medzisucet_zlava);
               if (kartou === null) {return;}
               kartou = naCislo(kartou);
+              if (kartou === null) {alert("CHYBA - Neplatná suma z terminálu. Zadajte platnú sumu!"); return;}
               var ma_dat = (Math.round((celaSuma - zlava_sum - kartou)*100))/100;
               var zaokruhli = zaokruhlit(ma_dat);
               zaokruhlenie.value = zaokruhli;
@@ -54,8 +57,11 @@ function OtvorZasuvku() {
 
 function PredajCasopis() {
                   var name = prompt ("Názov položky","Casopis Zeleznicni magazin");
+                  if (name === null) {return;}
                   var pocet = prompt ("Zadaj Množstvo?","1");
+                  if (pocet === null) {return;}
                   var cena = prompt ("Zadaj cenu za kus","8");
+                  if (cena === null) {return;}
                   var privesok = "akcia=PredajCasopis&description=CASOPIS&pocet=" + encodeURIComponent(pocet) + "&cena=" + encodeURIComponent(cena) + "&name=" + encodeURIComponent(name);                     
                   var link = "kasa_okno_portos.php?" + privesok; 
                   window.open(link, '_blank', 'toolbar=no,scrollbars=yes,resizable=yes,top=500,left=500,width=500,height=400'); 
@@ -154,7 +160,7 @@ function generujBlocek (naEmail) {
 
 function kontrola_storna() {
                cakaj.style = "display:none;";
-               var kontrola = confirm ("Prosím počkajte chvíľu a potvďte OK ak bol stiahnutý súbor a vytlačený bloček.\n\nAk bloček vytlačený nebol stlačte ZRUŠIŤ.");
+               var kontrola = confirm ("Prosím počkajte chvíľu a potvrďte OK ak bol stiahnutý súbor a vytlačený bloček.\n\nAk bloček vytlačený nebol stlačte ZRUŠIŤ.");
                
                if (kontrola) {
                           akcia.value = 'zapis';
@@ -199,7 +205,7 @@ function stiahni(oID) {
         txt.click();
                        
                 
-        var vymazat = confirm ('\n\nBol bloček vytlačený?\n\nPokiaľ kliknete OK uloží sa záznam do databázy. Pokiaľ klinete Zrušiť, skript sa pokúsi bloček stiahnuť ešte raz.');             
+        var vymazat = confirm ('\n\nBol bloček vytlačený?\n\nPokiaľ kliknete OK uloží sa záznam do databázy. Pokiaľ kliknete Zrušiť, skript sa pokúsi bloček stiahnuť ešte raz.');             
         if (vymazat) {  alert ('Dokončiť skript na vymazanie.');
         } else {txt.click();}
         
