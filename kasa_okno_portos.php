@@ -149,12 +149,18 @@
                 'HTTP_GET_VARS' => isset($HTTP_GET_VARS) ? portos_diag_sanitize($HTTP_GET_VARS) : array(),
                 'HTTP_POST_VARS' => isset($HTTP_POST_VARS) ? portos_diag_sanitize($HTTP_POST_VARS) : array()
             ));
+        } else {
+            portos_diag('Spracovava sa akcia: ' . $akcia);
+        }
+
+     // akcie s vlastnou vetvou - pri ostatných (vrátane prázdnej) sa vykreslí okno kasy s nákupom
+        $akcie_s_vetvou = array('VKLAD_ZAPIS', 'FAKTURA_ZAPIS', 'VYBER_ZAPIS', 'blocek_generuj',
+                                'VKLAD', 'VYBER', 'FAKTURA', 'PredajCasopis');
+        if (!in_array($akcia, $akcie_s_vetvou, true)) {
          // po načítaní okna kasy pošli nákup na zákaznícky displej
          // (režim SHOPPING, fáza preview - pôvodné ceny); volá sa mimo switch,
          // aby odoslanie nezáviselo od vetvy, ktorá sa práve vykresľuje
             ekasa_displej_nakup($oID);
-        } else {
-            portos_diag('Spracovava sa akcia: ' . $akcia);
         }
 
         switch ($akcia) {                            
