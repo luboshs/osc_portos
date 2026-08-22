@@ -118,14 +118,18 @@
     }
 
     // suma zadana pokladnikom moze obsahovat desatinnu ciarku - prepiseme ju na bodku
+    // vrati false ak je hodnota neplatna (nie prazdna - prazdna je volitelna a vracia 0)
         function ekasa_cislo($hodnota){
             if (is_array($hodnota)) {
-                return 0;
+                return false;
             }
             $hodnota = str_replace(array(' ', "\xc2\xa0"), '', (string)$hodnota);
             $hodnota = str_replace(',', '.', $hodnota);
-            if ($hodnota === '' || !is_numeric($hodnota)) {
+            if ($hodnota === '') {
                 return 0;
+            }
+            if (!is_numeric($hodnota)) {
+                return false;
             }
             return (float)$hodnota;
     }

@@ -1,12 +1,10 @@
-<!DOCTYPE html>
- <?php
- 
+<?php
        ini_set('display_errors', 1);
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
-        if (!headers_sent()) {
-            header('Content-Type: text/html; charset=utf-8');
-        }
+        header('Content-Type: text/html; charset=utf-8');
+?><!DOCTYPE html>
+ <?php
 
         $portos_diag_enabled = (isset($_GET['diag']) && $_GET['diag'] === '1') || (isset($_POST['diag']) && $_POST['diag'] === '1');
 
@@ -263,8 +261,10 @@
                     $roundingAmount = isset($_POST["zaokruhlenie"]) ? ekasa_cislo($_POST["zaokruhlenie"]) : 0;
 // !!!!!!!!!!!                     
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
+                    if ($hotovost === false) { echo '<p>CHYBA: Neplatná hodnota hotovosti.</p>'; break; }
                     $novy_zostatok  =   $zostatok + $hotovost;
                     if (isset($_POST["karta"])) {$platba_kartou=ekasa_cislo($_POST["karta"]);} else {$platba_kartou=0;}
+                    if ($platba_kartou === false) { echo '<p>CHYBA: Neplatná hodnota platby kartou.</p>'; break; }
                     $payments   = array(    array ('name' => "Hotovost", 'amount' => $hotovost),
                                             array ('name' => "Platba kartou", 'amount' => $platba_kartou));                    
                     //VYMAZ print("<pre>".print_r($payments,true)."</pre>");
@@ -577,8 +577,10 @@
                     
                     $roundingAmount =   isset($_POST["zaokruhlenie"]) ? ekasa_cislo($_POST["zaokruhlenie"]) : 0;
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
+                    if ($hotovost === false) { echo '<p>CHYBA: Neplatná hodnota hotovosti.</p>'; break; }
                     $novy_zostatok  =   $zostatok + $hotovost;
                     if (isset($_POST["karta"])) {$platba_kartou=ekasa_cislo($_POST["karta"]);} else {$platba_kartou=0;}
+                    if ($platba_kartou === false) { echo '<p>CHYBA: Neplatná hodnota platby kartou.</p>'; break; }
                //   príprava premenných pre doklad     
                     include ('portos/ekasa_priprav_data.php');
             // ========>
