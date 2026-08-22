@@ -670,8 +670,9 @@
 
                 if ($zlava_pritomna) {
                             $polozka_z = "Zľava " .$_POST["zlava_p"];
-                            $zlava_m_bez_dph = $zlava_m / 1.2;
-                            tep_db_query("insert into " . TABLE_ORDERS_PRODUCTS . " (orders_id, products_model, products_name, products_price, final_price, products_tax, products_quantity) values ('" . (int)$oID . "', 'ZLAVA', '" . tep_db_input(ekasa_do_db($polozka_z)) . "', " . tep_db_input($zlava_m_bez_dph)  . ", " . tep_db_input($zlava_m_bez_dph). ", 20, 1)");
+                            // zľava sa do objednávky zapisuje ako záporná položka (cena bez DPH)
+                            $zlava_m_bez_dph = round(0 - (abs($zlava_m) / 1.23), 4);
+                            tep_db_query("insert into " . TABLE_ORDERS_PRODUCTS . " (orders_id, products_model, products_name, products_price, final_price, products_tax, products_quantity) values ('" . (int)$oID . "', 'ZLAVA', '" . tep_db_input(ekasa_do_db($polozka_z)) . "', " . tep_db_input($zlava_m_bez_dph)  . ", " . tep_db_input($zlava_m_bez_dph). ", 23, 1)");
                 }
 
                 if ($isSuccessful){
@@ -1293,6 +1294,8 @@
                         echo '<input type="hidden" name="nakup" value="'.$nakup.'">';
                         echo '<input type="hidden" name="akcia" value="" id="akcia">';
                         echo '<input type="hidden" name="hotovost_ma_dat" value="'.$medzisucet.'" id="hotovost_ma_dat">';                        
+                        echo '<input type="hidden" id="zlava_zaklad" value="'.ekasa_html($medzisucet).'">';
+                        echo '<input type="hidden" id="zlava_polozky" value="'.ekasa_html(json_encode(array(array('unitPrice' => $cena, 'quantity' => $pocet)))).'">';
                         
                 break;
                
@@ -1489,6 +1492,8 @@
                         echo '<input type="hidden" name="nakup" value="'.$nakup.'">';
                         echo '<input type="hidden" name="akcia" value="" id="akcia">';
                         echo '<input type="hidden" name="hotovost_ma_dat" value="'.$medzisucet.'" id="hotovost_ma_dat">';                        
+                        echo '<input type="hidden" id="zlava_zaklad" value="'.ekasa_html($zlava_zaklad).'">';
+                        echo '<input type="hidden" id="zlava_polozky" value="'.ekasa_html(json_encode($zlava_polozky)).'">';
                         
                  }
     }
