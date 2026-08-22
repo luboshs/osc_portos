@@ -334,19 +334,23 @@
                         echo '</tr>';       
            
            
-           /*  dorobiť možnosť posielať bloček na email                                   
+
+                        // Funkcia email na doklad bola deaktivovaná
+                        // Používateľ si môže vytlačiť doklad alebo poslať manuálne
+                        
+            /* ZRUŠENÉ - EMAIL FUNKCIA DEAKTIVOVANÁ
                         $email = $order->customer['email_address'];
                         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                                echo '<tr id="email_tr">';
-                                echo '<td>Email:</td>';
+                               echo '<tr id="email_tr">';
+                               echo '<td>Email:</td>';
                                 echo '<td>';
-                                echo 'V objednávke je zadaný email, <b>spýtaj sa zákazníka, či chce bloček vytlačiť alebo poslať na email?</b><br />Email je potrebné skontrolovať. Bloček nie je možné zaslať opakovane, ani ho neskôr vytlačiť.<br /><br />';
-                                echo '<input type="text" name="email" value="'.$email.'" style="font-size: 12pt" size="30"  id = "email">';
-                                echo '</td>';
-                                echo '<td>';
-                            //    echo '<button type="button" onclick="generujBlocek('.$oID.');" class="button_blocek">GENERUJ BLOČEK</button>';
-                                echo '</td>';
-                                echo '</tr>';                              
+                               echo 'V objednávke je zadaný email, <b>spýtaj sa zákazníka, či chce bloček vytlačiť alebo poslať na email?</b><br />Email je potrebné skontrolovať. Bloček nie je možné zaslať opakovane, ani ho neskôr vytlačiť.<br /><br />';
+                               echo '<input type="text" name="email" value="'.$email.'" style="font-size: 12pt" size="30"  id = "email">';
+                               echo '</td>';
+                               echo '<td>';
+                           //    echo '<button type="button" onclick="generujBlocek(true);" class="button_blocek">DOKLAD NA EMAIL</button>';
+                               echo '</td>';
+                               echo '</tr>';                              
                         }          
             */
 
