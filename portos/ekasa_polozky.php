@@ -151,7 +151,7 @@
                                                         // riadok so zľavou nezačína značkou "> ", ale textom "ZĽAVA"
                                                         $items [] =   array (   'type'        =>    'Discount',
                                                                                 'name'        =>    'ZĽAVA ' . $zlava_percent . '% - ' . $model_ocisteny,
-                                                                                'description' =>    $description . ' (zľava)',
+                                                                            //  'description' =>    $description . ' (zľava)',
                                                                                 'price'       =>    $discount_price,
                                                                                 'unitPrice'   =>    $discount_unitprice,
                                                                                 'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
