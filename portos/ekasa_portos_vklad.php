@@ -28,8 +28,9 @@
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=$_POST["hotovost_ma_dat"];} else {$hotovost=0;}
                     $platba_kartou  =   $_POST["karta"];  
                     if (isset($_POST["karta"])) {$platba_kartou=$_POST["karta"];} else {$platba_kartou=0;}
-               //   príprava premenných pre doklad     
-                    include ('portos/ekasa_priprav_data.php'); 
+               //   príprava premenných pre doklad
+                   include ('portos/ekasa_polozky.php');
+                   include ('portos/ekasa_priprav_data.php');
             // ========>
             // ========>
                     print("<pre>".print_r($data_array,true)."</pre>");

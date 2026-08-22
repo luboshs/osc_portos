@@ -14,14 +14,15 @@
        $profit=0;
        $blocek_polozky = "";
        $ekasa_zlava =0;
-       
+       $zlava_pritomna = false;
+        
        // Extrahovanie percentuálnej zľavy z POST
        $zlava_percent = 0;
        if (isset($_POST["zlava_p"])) {
            $zlava_percent = (float)str_replace('%', '', trim($_POST["zlava_p"]));
        }
-       
-       $items = array (); 
+        
+       $items = array ();
        
        for ($i = 0, $n = sizeof($order->products); $i < $n; $i++) {
                                 if (!($order->products[$i]['qty']==0)) {
@@ -44,10 +45,9 @@
                                                 $quantity = abs ($quantity);
                                         }
                                         */
-                                        // celková cena produktu, 2 desatinné miesta = musí sa rovnať násobku UnitPrice a Quantity
+                                         // celková cena produktu, 2 desatinné miesta = musí sa rovnať násobku UnitPrice a Quantity
                                         $price      =  $unitprice * $order->products[$i]['qty'];
                                         $price      =  round($price,2);
-                                        $medzisucet += $price; 
                                         
                                         // type = "Positive" "ReturnedContainer" "Returned" "Correction" "Discount" "Advance" "Voucher"
                                         if ($unitprice >= 0) {
@@ -118,7 +118,7 @@
                                                 $discount_amount = $unitprice * ($zlava_percent / 100);
                                                 $discounted_unitprice = $unitprice - $discount_amount;
                                                 $discounted_unitprice = round($discounted_unitprice, 6);
-                                                 
+                                                  
                                                 // Pridaj pôvodnú položku
                                                 $items [] =   array (   'type'        =>    $type,
                                                                         'name'        =>    $name,
@@ -127,11 +127,11 @@
                                                                         'unitPrice'   =>    $unitprice,
                                                                         'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
                                                                         'vatRate'     =>    $sadzba_DPH);
-                                                 
+                                                  
                                                 // Pridaj diskontnú položku (negatívnu)
                                                 $discount_price = round(-abs($discount_amount * $quantity), 2);
                                                 $discount_unitprice = round(-abs($discount_amount), 6);
-                                                 
+                                                  
                                                 $items [] =   array (   'type'        =>    'Discount',
                                                                         'name'        =>    $name . ' - ZLAVA ' . $zlava_percent . '%',
                                                                         'description' =>    $description . ' (zľava)',
@@ -139,9 +139,9 @@
                                                                         'unitPrice'   =>    $discount_unitprice,
                                                                         'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
                                                                         'vatRate'     =>    $sadzba_DPH);
-                                                 
-                                                // Aplikovať diskontnú sumu na medzisúčet (cena sa už počítava na riadku 50)
-                                                $medzisucet += $discount_price;
+                                                  
+                                                // Počítaj ceny do medzisúčtu (pôvodná - zľava)
+                                                $medzisucet += $price + $discount_price;
                                                 $zlava_pritomna = true;
                                         }
                                         else if ($type == "Returned") {
@@ -154,6 +154,7 @@
                                                                         'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
                                                                         'vatRate'     =>    $sadzba_DPH,
                                                             );
+                                                $medzisucet += -abs($price);
                                         }
 
                                         else if ($type == "Correction") {
@@ -166,8 +167,10 @@
                                                                         'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
                                                                         'vatRate'     =>    $sadzba_DPH,
                                                             );
+                                                $medzisucet += $price;
                                         }
                                         else {
+                                                // Ostatné typy (Positive bez zľavy, KC položky, Discount, Voucher, atď.)
                                                 $items [] =   array (   'type'        =>    $type,
                                                                         'name'        =>    $name,
                                                                         'description' =>    $description,
@@ -175,6 +178,7 @@
                                                                         'unitPrice'   =>    $unitprice,
                                                                         'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
                                                                         'vatRate'     =>    $sadzba_DPH);
+                                                $medzisucet += $price;
                                         }
 
                       	     }
