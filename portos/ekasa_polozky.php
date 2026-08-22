@@ -205,7 +205,7 @@
        // Pridanie informatívneho textu o ušetrenej sume na koniec dokladu
        if ($celkova_usporena > 0) {
           $info_text = sprintf("Celkovo ste ušetrili: %.2f EUR", $celkova_usporena);
-          $items [] = array (   'type'        =>    'Voucher',
+          $items [] = array (   'type'        =>    'Discount',
                               'name'        =>    '> INFO: ' . $info_text,
                               'description' =>    'Informačný riadok o ušetrenej sume',
                               'price'       =>    0,
