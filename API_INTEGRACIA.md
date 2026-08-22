@@ -199,9 +199,9 @@ Tento dokument je orientovaný na integračný tím (POS/kasa, osCommerce, Prest
 
 ## 7) Integrácia helperov
 
-- **osCommerce 2.2 RC2a**: `integration/oscommerce_bridge.php`, `integration/oscommerce_edit_orders.php`, `integration/oscommerce_pos_discount.php`
-- **PrestaShop 8**: `integration/prestashop_bridge.php`
-- **Thank-you one-shot skript**: `integration/display_thank_you.php`
+- **osCommerce 2.2 RC2a**: `admin/oscommerce_bridge.php`, `admin/oscommerce_edit_orders.php`, `admin/oscommerce_pos_discount.php`
+- **PrestaShop 8**: `admin/prestashop_bridge.php`
+- **Thank-you one-shot skript**: `admin/display_thank_you.php`
 
 Odporúčanie:
 - používať helpery `*_cart_preview`, `*_cart_discounted`, `*_start_qr_payment`, `*_wait_for_payment`,

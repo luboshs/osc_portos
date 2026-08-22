@@ -135,6 +135,7 @@ function qrPlatba () {
 
               var data = "akcia=qr_start&oID=" + encodeURIComponent(oIDpole.value) + "&suma=" + encodeURIComponent(sumaNaUhradu);
               qrApi(data, function (status, odpoved) {
+                    console.log("QR start odpoveď:", status, odpoved);
                     if (status !== 200 || !odpoved || !odpoved.success) {
                           qrPlatbaZrus("start failed");
                           qrStav("QR platbu sa nepodarilo spustiť. " + (odpoved && odpoved.stav ? odpoved.stav : ""));
@@ -179,8 +180,9 @@ function qrPlatbaKontrola () {
                           qrPlatbaChyby++;
                           if (qrPlatbaChyby >= 5) {
                                 qrPlatbaZrus("status error");
-                                qrStav("Chyba komunikácie pri overovaní QR platby.");
-                                alert("Chyba komunikácie pri overovaní QR platby. Skontroluj internet/API a skús znova.");
+                                var stavInfo = (odpoved && odpoved.stav ? ' ' + odpoved.stav : '');
+                                qrStav("Chyba komunikácie pri overovaní QR platby." + stavInfo);
+                                alert("Chyba komunikácie pri overovaní QR platby. Skontroluj internet/API a skús znova." + stavInfo);
                                 return;
                           }
                           qrStav("Čakám na potvrdenie QR platby... (" + qrPlatbaPokusy + "/" + qrPlatbaMaxPokusov + "), chyba " + qrPlatbaChyby + "/5");
