@@ -1303,7 +1303,8 @@
                
                     
                 default:
-                     // po načítaní okna kasy pošli nákup na zákaznícky displej (režim SHOPPING)
+                     // po načítaní okna kasy pošli nákup na zákaznícky displej
+                     // (režim SHOPPING, fáza preview - pôvodné ceny)
                         ekasa_displej_nakup($oID);
 
                         echo '<table>';
