@@ -672,7 +672,7 @@
                                                 'vat' => tep_db_prepare_input($vat),
                                                 'hotovost_kredit' => tep_db_prepare_input($hotovost_kredit),
                                                 'hotovost_debit' => tep_db_prepare_input($hotovost_debit),
-                                                'platobna_karta'  => tep_db_prepare_input($platba_kartou + $platba_qr),
+                                                'platobna_karta'  => tep_db_prepare_input($platba_kartou),
                                                 'hotovost_zostatok' => tep_db_prepare_input($novy_zostatok),
                                                 'response' => $response_json,
                                                 'error' => tep_db_prepare_input($error),
@@ -747,8 +747,7 @@
                                                     echo '<tr>';
                                                     echo '<td>QR platba:</td>';
                                                     echo '<td>';
-                                                    $qr_sql = isset($_POST["qr_platba"]) ? ekasa_cislo($_POST["qr_platba"]) : 0;
-                                                    echo '<input type="text" name="qr_platba" readonly disabled value="'.$qr_sql.'"  style="font-size: 25pt" size="8">';
+                                                    echo '<input type="text" name="qr_platba" readonly disabled value="'.ekasa_cislo($platba_qr).'"  style="font-size: 25pt" size="8">';
                                                     echo '</td>';
                                                     echo '<td>';
                                                     echo '</td>';

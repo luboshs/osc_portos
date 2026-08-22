@@ -46,8 +46,10 @@
                     $hotovost_zaokruhlena = $hotovost + $roundingAmount;
                     if (!isset($platba_qr)) { $platba_qr = 0; }
                     $payments   = array(    array ('name' => "Hotovost", 'amount' => $hotovost_zaokruhlena),
-                                            array ('name' => "Platba kartou", 'amount' => $platba_kartou),
-                                            array ('name' => "QR platba", 'amount' => $platba_qr));
+                                            array ('name' => "Platba kartou", 'amount' => $platba_kartou));
+                    if ($platba_qr > 0) {
+                            $payments[] = array ('name' => "QR platba", 'amount' => $platba_qr);
+                    }
                     
 
                     $data_array = array ( 'request'=> array (   'data' => array (  'items'     =>  $items,

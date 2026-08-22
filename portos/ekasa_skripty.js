@@ -8,6 +8,14 @@ function naCislo (hodnota) {
 }
 
 function qrPlatbaVynuluj (dovod) {
+              var bolaAktivna = qrPlatbaPrebieha;
+              var oIDpole = document.getElementById("oID");
+              var qrIdPole = document.getElementById("qr_platba_id");
+              if (bolaAktivna && oIDpole && oIDpole.value) {
+                    var platbaId = qrIdPole ? qrIdPole.value : '';
+                    var data = "akcia=qr_cancel&oID=" + encodeURIComponent(oIDpole.value) + "&platba_id=" + encodeURIComponent(platbaId);
+                    qrApi(data, function () {});
+              }
               qrPlatbaZrus(dovod);
               if (document.getElementById('qr_platba')) {document.getElementById('qr_platba').value = 0;}
               if (document.getElementById('qr_platba_potvrdena')) {document.getElementById('qr_platba_potvrdena').value = "0";}
@@ -53,6 +61,9 @@ function platbaKartou () {
 
 var qrPlatbaPolling = null;
 var qrPlatbaPrebieha = false;
+var qrPlatbaPokusy = 0;
+var qrPlatbaMaxPokusov = 60;
+var qrPlatbaChyby = 0;
 
 function qrStav (sprava) {
               var stav = document.getElementById('qr_status');
@@ -65,14 +76,15 @@ function qrPlatbaZrus (dovod) {
                     qrPlatbaPolling = null;
               }
               qrPlatbaPrebieha = false;
+              qrPlatbaPokusy = 0;
+              qrPlatbaChyby = 0;
               if (dovod) {console.log("QR stop: " + dovod);}
 }
 
 function qrSumaNaUhradu () {
               var celaSuma = naCislo(suma.value);
               var zlava_sum = naCislo(zlava_suma.value);
-              var zaokruhli = naCislo(zaokruhlenie.value);
-              var spolu = (Math.round((celaSuma - zlava_sum + zaokruhli) * 100)) / 100;
+              var spolu = (Math.round((celaSuma - zlava_sum) * 100)) / 100;
               if (spolu < 0) {spolu = 0;}
               return spolu;
 }
@@ -115,6 +127,8 @@ function qrPlatba () {
 
               qrPlatbaZrus();
               qrPlatbaPrebieha = true;
+              qrPlatbaPokusy = 0;
+              qrPlatbaChyby = 0;
               qrStav("Spúšťam QR platbu, čakaj...");
               var qrPotvrdena = document.getElementById('qr_platba_potvrdena');
               if (qrPotvrdena) {qrPotvrdena.value = "0";}
@@ -123,7 +137,7 @@ function qrPlatba () {
               qrApi(data, function (status, odpoved) {
                     if (status !== 200 || !odpoved || !odpoved.success) {
                           qrPlatbaZrus("start failed");
-                          qrStav("QR platbu sa nepodarilo spustiť.");
+                          qrStav("QR platbu sa nepodarilo spustiť. " + (odpoved && odpoved.stav ? odpoved.stav : ""));
                           alert("QR platbu sa nepodarilo spustiť.\n" + (odpoved && odpoved.stav ? odpoved.stav : ""));
                           return;
                     }
@@ -142,6 +156,13 @@ function qrPlatba () {
 
 function qrPlatbaKontrola () {
               if (!qrPlatbaPrebieha) {return;}
+              qrPlatbaPokusy++;
+              if (qrPlatbaPokusy > qrPlatbaMaxPokusov) {
+                    qrPlatbaZrus("timeout");
+                    qrStav("QR platba nebola potvrdená v limite.");
+                    alert("QR platba nebola potvrdená v limite. Skontroluj stav platby a skús znovu.");
+                    return;
+              }
               var oIDpole = document.getElementById("oID");
               if (!oIDpole || !oIDpole.value) {
                     qrPlatbaZrus("missing oid");
@@ -155,10 +176,18 @@ function qrPlatbaKontrola () {
               qrApi(data, function (status, odpoved) {
                     if (!qrPlatbaPrebieha) {return;}
                     if (status !== 200 || !odpoved || !odpoved.success) {
-                          qrStav("Čakám na potvrdenie QR platby...");
+                          qrPlatbaChyby++;
+                          if (qrPlatbaChyby >= 5) {
+                                qrPlatbaZrus("status error");
+                                qrStav("Chyba komunikácie pri overovaní QR platby.");
+                                alert("Chyba komunikácie pri overovaní QR platby. Skontroluj internet/API a skús znova.");
+                                return;
+                          }
+                          qrStav("Čakám na potvrdenie QR platby... (" + qrPlatbaPokusy + "/" + qrPlatbaMaxPokusov + "), chyba " + qrPlatbaChyby + "/5");
                           qrPlatbaPolling = setTimeout(qrPlatbaKontrola, 3000);
                           return;
                     }
+                    qrPlatbaChyby = 0;
 
                     if (odpoved.paid) {
                           qrPlatbaZrus("paid");
@@ -175,7 +204,7 @@ function qrPlatbaKontrola () {
                           return;
                     }
 
-                    qrStav("Čakám na potvrdenie QR platby...");
+                    qrStav("Čakám na potvrdenie QR platby... (" + qrPlatbaPokusy + "/" + qrPlatbaMaxPokusov + ")");
                     qrPlatbaPolling = setTimeout(qrPlatbaKontrola, 3000);
               });
 }

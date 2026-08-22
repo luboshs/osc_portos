@@ -90,7 +90,7 @@
                         if (function_exists($funkcia)) {
                                 $vysledok = call_user_func_array($funkcia, $argumenty);
                                 $ok = true;
-                                if ($vysledok === false || $vysledok === null) { $ok = false; }
+                                if ($vysledok === false || $vysledok === null || $vysledok === '' || (is_array($vysledok) && count($vysledok) === 0)) { $ok = false; }
                                 ekasa_displej_stav($nazov_akcie.': '.$funkcia.' = '.($ok ? 'OK' : 'neúspech'));
                                 return array('success' => $ok, 'source' => $funkcia, 'result' => $vysledok);
                         }
