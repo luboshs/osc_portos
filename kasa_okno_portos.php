@@ -5,7 +5,7 @@
         ini_set('display_startup_errors', 1);
         error_reporting(E_ALL);
         if (!headers_sent()) {
-            header('Content-Type: text/html; charset=cp-1250');
+            header('Content-Type: text/html; charset=utf-8');
         }
 
         $portos_diag_enabled = (isset($_GET['diag']) && $_GET['diag'] === '1') || (isset($_POST['diag']) && $_POST['diag'] === '1');
@@ -50,12 +50,12 @@
             }
 
             echo '<div style="font-family: monospace; font-size: 12px; border:1px solid #666; background:' . $bg . '; margin:5px 0; padding:6px;">';
-            // ISO-8859-1 used instead of Windows-1250: PHP 5.3.29 does not support 'Windows-1250' charset name
-            echo '<b>[PORTOS DIAG][' . htmlspecialchars($type, ENT_QUOTES, 'ISO-8859-1') . ']</b> ';
-            echo htmlspecialchars($message, ENT_QUOTES, 'ISO-8859-1');
+            // Vystup stranky je v UTF-8, preto sa aj HTML escapovanie robi v UTF-8
+            echo '<b>[PORTOS DIAG][' . htmlspecialchars($type, ENT_QUOTES, 'UTF-8') . ']</b> ';
+            echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
             if (!empty($context)) {
                 echo '<pre style="margin:6px 0 0 0;">';
-                echo htmlspecialchars(print_r($context, true), ENT_QUOTES, 'ISO-8859-1');
+                echo htmlspecialchars(print_r($context, true), ENT_QUOTES, 'UTF-8');
                 echo '</pre>';
             }
             echo '</div>';
@@ -72,7 +72,7 @@
         }
 
         function portos_diag_exception_handler($exception) {
-            portos_diag('Neodchyten� v�nimka', array(
+            portos_diag('Neodchytená výnimka', array(
                 'message' => $exception->getMessage(),
                 'file' => $exception->getFile(),
                 'line' => $exception->getLine(),
@@ -101,19 +101,19 @@
             'post' => portos_diag_sanitize($_POST)
         ));
         
-     // na��tanie z�kladn�ch funkci� eshopu
+     // načítanie základných funkcií eshopu
         require('includes/application_top.php');
         include(DIR_WS_CLASSES . 'order.php');
         $oID = isset($HTTP_GET_VARS['oID']) ? tep_db_prepare_input($HTTP_GET_VARS['oID']) : 0;
         if (isset($_POST["oID"])) {$oID = tep_db_prepare_input($HTTP_POST_VARS['oID']);}
         $order = new order($oID);
-     // na��tanie nastaven� a funkci� ekasa
+     // načítanie nastavení a funkcií ekasa
         include ('portos/ekasa_portos_nastavenia.php');
         include ('portos/ekasa_portos.php');
 
         
    /*
-    //  toto kr�sne vyp�e POST premenn�
+    //  toto krásne vypíše POST premenné
     echo "<table>";
     foreach ($_POST as $key => $value) {
         echo "<tr>";
@@ -130,10 +130,10 @@
      */
 
 
-     // pr�prava polo�iek dokladu     
+     // príprava položiek dokladu     
         include ('portos/ekasa_polozky.php');
               
-     // zistenie POST / GET d�t
+     // zistenie POST / GET dát
         if (isset($_GET["faktura"])) {$faktura=true;} else {$faktura=false;}
         if (isset($HTTP_POST_VARS['akcia']) && $HTTP_POST_VARS['akcia'] !== '') {
             $akcia = $HTTP_POST_VARS['akcia'];
@@ -165,8 +165,7 @@
                     $eID = mysql_insert_id();
                     //echo $eID;
                     
-                    $suma           =   $_POST["suma"];
-                    $suma           =   str_replace (',','.',$suma);
+                    $suma           =   ekasa_cislo($_POST["suma"]);
                     $novy_zostatok  =   $zostatok + $suma;            
                     $poznamkaInterna=   $_POST["poznamka"].', '.$_POST["poznamkaInterna"];
                     $poznamka       =   $_POST["poznamka"];
@@ -188,16 +187,16 @@
                     $response_json = callAPI('POST', $function_url, json_encode($data_array));
                     $response  = json_decode($response_json, true);
                     
-                                // poradov� ��slo dokladu
+                                // poradové číslo dokladu
                                $receipt_number = $response['request']['data']['receiptNumber'];
                                $okp = $response['request']['data']['okp'];
-                               // cel� pole s obsahom doklada a d�tami
+                               // celé pole s obsahom doklada a dátami
                                $receipt_data = $response['request']['data'];
-                               // �daje z ekasa serveru
+                               // údaje z ekasa serveru
                                $UID = $response['response']['data']['id'];
                                $processDate = $response['response']['processDate'];
                                $isSuccessful = $response['isSuccessful'];
-                               // z�znamy o chyb�ch zo syst�mu ekasa
+                               // záznamy o chybách zo systému ekasa
                                $error =  $response['error'];
                                $error_code =  $response['error']['code'];
                                $error_message =  $response['error']['message'];
@@ -208,17 +207,17 @@
                               
                               
                                if ($isSuccessful) {
-                                       echo 'Z�pis OK. M��e� zavrie� okno.';
+                                       echo 'Zápis OK. Môžeš zavrieť okno.';
                                        ?>
                                        <script language="javascript">
                                         window.parent.opener.location.reload();
                                         </script> <br><br>
                                         <button type="button" 
-                                            onclick="window.open('', '_self', ''); window.close();">Zavrie� okno</button>
+                                            onclick="window.open('', '_self', ''); window.close();">Zavrieť okno</button>
                                        <?php
                                        $request_sent = 'zaevidovane';
                                } else {
-                                       echo 'Vyskytla sa chyba! Pros�m informuj administr�tora!<br /><br />Error log:<br />';
+                                       echo 'Vyskytla sa chyba! Prosím informuj administrátora!<br /><br />Error log:<br />';
                                        echo $response_json; 
                                        $email = "eID: ".$eID."\n\n".$response_json;
                                        tep_mail('Admin', 'antal@atac-sro.eu', 'Notifikacia - chyba portos kasa', $email, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);
@@ -239,7 +238,7 @@
                                                 'response' => $response_json,
                                                 'error' => tep_db_prepare_input($error),
                                                 'admin' => tep_db_prepare_input($autorizoval),
-                                                'poznamka' => tep_db_prepare_input($poznamkaInterna));
+                                                'poznamka' => tep_db_prepare_input(ekasa_do_db($poznamkaInterna)));
                                                 
                           $sql = tep_db_perform('ekasa_doklady', $sql_data_array,'update',"eID = '".$eID."'");
                 
@@ -256,19 +255,18 @@
                     $sql_zaloz_id = tep_db_query("insert into ekasa_doklady (type, cashRegisterCode, date, hotovost_zostatok) values ('invoice', '".CASH_REGISTER_CODE."', '" . tep_db_input($datum) . "', '".tep_db_input($zostatok)."')");
                     $eID = mysql_insert_id();
                
-                    $suma           =   $_POST["suma"];
-                    $suma           =   str_replace (',','.',$suma);
+                    $suma           =   ekasa_cislo($_POST["suma"]);
                     $novy_zostatok  =   $zostatok + $suma;            
                     $poznamkaInterna=   $_POST["poznamkaInterna"];
                     $faktura        =   $_POST["cislo_faktury"];
                     $function_url = 'requests/receipts/invoice'; 
-                    $roundingAmount = $_POST["zaokruhlenie"];
+                    $roundingAmount = ekasa_cislo($_POST["zaokruhlenie"]);
 // !!!!!!!!!!!                     
-                    $hotovost       =   $_POST["hotovost_ma_dat"];
+                    $hotovost       =   ekasa_cislo($_POST["hotovost_ma_dat"]);
                      $novy_zostatok  =   $zostatok + $hotovost;       
-                    if (isset($_POST["hotovost_ma_dat"])) {$hotovost=$_POST["hotovost_ma_dat"];} else {$hotovost=0;}
-                    $platba_kartou  =   $_POST["karta"];  
-                    if (isset($_POST["karta"])) {$platba_kartou=$_POST["karta"];} else {$platba_kartou=0;}
+                    if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
+                    $platba_kartou  =   ekasa_cislo($_POST["karta"]);  
+                    if (isset($_POST["karta"])) {$platba_kartou=ekasa_cislo($_POST["karta"]);} else {$platba_kartou=0;}
                     $payments   = array(    array ('name' => "Hotovost", 'amount' => $hotovost),
                                             array ('name' => "Platba kartou", 'amount' => $platba_kartou));                    
                     //VYMAZ print("<pre>".print_r($payments,true)."</pre>");
@@ -306,43 +304,43 @@
                     $response_json = callAPI('POST', $function_url, json_encode($data_array));
                     $response  = json_decode($response_json, true);
                     
-                                // poradov� ��slo dokladu
+                                // poradové číslo dokladu
                                $receipt_number = $response['request']['data']['receiptNumber'];
                                $okp = $response['request']['data']['okp'];
-                               // cel� pole s obsahom doklada a d�tami
+                               // celé pole s obsahom doklada a dátami
                                $receipt_data = $response['request']['data'];
-                               // �daje z ekasa serveru
+                               // údaje z ekasa serveru
                                $UID = $response['response']['data']['id'];
                                $processDate = $response['response']['processDate'];
                                $isSuccessful = $response['isSuccessful'];
-                               // z�znamy o chyb�ch zo syst�mu ekasa
+                               // záznamy o chybách zo systému ekasa
                                $error =  $response['error'];
                                $error_code =  $response['error']['code'];
                                $error_message =  $response['error']['message'];
                               
                                if ($isSuccessful) {
-                                       echo 'Z�pis OK. M��e� zavrie� okno.';
+                                       echo 'Zápis OK. Môžeš zavrieť okno.';
                                        ?>
                                        <script language="javascript">
                                         window.parent.opener.location.reload();
                                         </script> <br><br>
                                         <button type="button" 
-                                            onclick="window.open('', '_self', ''); window.close();">Zavrie� okno</button>
+                                            onclick="window.open('', '_self', ''); window.close();">Zavrieť okno</button>
                                        <?php
                                        
                                } else {
-                                       echo 'Vyskytla sa chyba! Pros�m informuj administr�tora!<br /><br />Error log:<br />';
+                                       echo 'Vyskytla sa chyba! Prosím informuj administrátora!<br /><br />Error log:<br />';
                                        echo  $response_json; 
                                        $email = "eID: ".$eID."\n\n".$response_json;
                                        tep_mail('Admin', 'antal@atac-sro.eu', 'Notifikacia - chyba portos kasa', $email, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);  
-                                       // ke�e sa blo�ek nebude evidova�, tak sa nebude meni� ani zostatok
+                                       // keďže sa bloček nebude evidovať, tak sa nebude meniť ani zostatok
                                        $novy_zostatok = $zostatok;
                                }
                       $year = date('Y');
                       $month =  date('m');
                       $sql_data_array = array(  'UID' => $UID,
                                                 'receiptNumber' => tep_db_prepare_input($receipt_number),
-                                                'invoiceNumber' => tep_db_prepare_input($faktura),
+                                                'invoiceNumber' => tep_db_prepare_input(ekasa_do_db($faktura)),
                                                 'year' => tep_db_prepare_input($year),
                                                 'month' => tep_db_prepare_input($month),
                                                 'request_sent' => 'odoslane',
@@ -355,19 +353,19 @@
                                                 'response' => $response_json,
                                                 'error' => tep_db_prepare_input($error),
                                                 'admin' => tep_db_prepare_input($autorizoval),
-                                                'poznamka' => tep_db_prepare_input($poznamkaInterna));
+                                                'poznamka' => tep_db_prepare_input(ekasa_do_db($poznamkaInterna)));
                                                 
                           $sql = tep_db_perform('ekasa_doklady', $sql_data_array,'update',"eID = '".$eID."'");
 
                              if ($isSuccessful) {
                                    $sql_order = tep_db_query("update orders set orders_status = 2, last_modified = now(), blocek = '" . (int)$eID . "' where orders_id = '" . (int)$oID . "'");
-             // dokon�i� !!!
-                                   $komentar = "ekasa/CHDU portos - Fakt�ra bola uhraden� - �hrada bola vy��tovan� pokladni�n�m blo�kom v celkovej sume ".$suma." � (zaokr�hlenie = ".$roundingAmount.")"."\n\nPlatidl�:\nHotovos� = ".$hotovost."\nKarta= ".$platba_kartou."\nUID blo�ka = ".$UID."\n��slo blo�ka = ".$receipt_number."\nNa�e ID blo�ka = ".$eID.$email_log;
-                                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input($komentar) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
+             // dokončiť !!!
+                                   $komentar = "ekasa/CHDU portos - Faktúra bola uhradená - úhrada bola vyúčtovaná pokladničným bločkom v celkovej sume ".$suma." € (zaokrúhlenie = ".$roundingAmount.")"."\n\nPlatidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
+                                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input(ekasa_do_db($komentar)) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
                                 } else {
                                    // $sql_order = tep_db_query("update orders set orders_status = 2, last_modified = now(), blocek = '" . (int)$eID . "' where orders_id = '" . (int)$oID . "'");
-                                   $komentar = "ekasa/CHDU portos - chyba, �hrada fakt�ry ne�spe�n�"."\n\n".$email."\n\n"."Platidl�:\nHotovos� = ".$hotovost."\nKarta= ".$platba_kartou."\nUID blo�ka = ".$UID."\n��slo blo�ka = ".$receipt_number."\nNa�e ID blo�ka = ".$eID.$email_log;
-                                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input($komentar) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
+                                   $komentar = "ekasa/CHDU portos - chyba, úhrada faktúry neúspešná"."\n\n".$email."\n\n"."Platidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
+                                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input(ekasa_do_db($komentar)) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
 
                                 }
 
@@ -403,16 +401,16 @@
                                      curl_close($ch);      
                                       
                                        if ($error == 0) {
-                                                 echo '�hrada bola zap�san� do superfakt�ry.';
+                                                 echo 'Úhrada bola zapísaná do superfaktúry.';
                                        } else {
-                                                 echo 'Vyskytla sa chyba pri z�pise do superfakt�ry! Pros�m informuj administr�tora!<br />';
+                                                 echo 'Vyskytla sa chyba pri zápise do superfaktúry! Prosím informuj administrátora!<br />';
                                                  echo  $response_json2; 
-                                                 $email = "chyba z�pisu do superfakt�ry, eID: ".$eID."\n\n".$data."\n\n".$response_json2;
+                                                 $email = "chyba zápisu do superfaktúry, eID: ".$eID."\n\n".$data."\n\n".$response_json2;
                                                  tep_mail('Admin', 'antal@atac-sro.eu', 'Notifikacia - chyba portos kasa', $email, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);  
                                        }
 
                           if ($sql) {
-                                        echo '<br /><br />Z�znam bol ulo�en� do datab�zy, m��ete zavrie� okno.<br />';
+                                        echo '<br /><br />Záznam bol uložený do databázy, môžete zavrieť okno.<br />';
                                                             echo '<table>';
         
                                                             echo '<tr>';
@@ -421,7 +419,7 @@
                                                             echo '<input type="text" name="suma" id="suma" value="'.$suma.'"  readonly disabled style="font-size: 25pt" size="8">';
                                                             echo '</td>';
                                                             echo '<td>';
-                                                            echo '�';
+                                                            echo '€';
                                                             echo '</td>';
                                                             echo '</tr>';
   
@@ -429,7 +427,7 @@
                                                             echo '<tr>';
                                                             echo '<td>Platba kartou:</td>';
                                                             echo '<td>';
-                                                            $karta_sql = str_replace (',','.',$_POST["karta"]);
+                                                            $karta_sql = ekasa_cislo($_POST["karta"]);
                                                             echo '<input type="text" name="karta" readonly disabled value="'.$karta_sql.'"  style="font-size: 25pt" size="8">';
                                                             echo '</td>';
                                                             echo '<td>';
@@ -439,14 +437,14 @@
                                                             echo '<tr>';
                                                             echo '<td>ZAOKR&Uacute;HLENIE:</td>';
                                                             echo '<td>';                                                            
-                                                            echo '<input type="text" name="hotovost" value="'.$_POST["zaokruhlenie"].'" readonly disabled style="font-size: 25pt" size="8" >';
+                                                            echo '<input type="text" name="hotovost" value="'.ekasa_cislo($_POST["zaokruhlenie"]).'" readonly disabled style="font-size: 25pt" size="8" >';
                                                             echo '</td>';                                                            
                                                             
                                                             echo '<tr>';
                                                             echo '<td>HOTOVOS&#356;:</td>';
                                                             echo '<td>';
                                                             
-                                                            echo '<input type="text" name="hotovost" value="'.$_POST["hotovost"].'" readonly disabled style="font-size: 25pt" size="8" >';
+                                                            echo '<input type="text" name="hotovost" value="'.ekasa_cislo($_POST["hotovost"]).'" readonly disabled style="font-size: 25pt" size="8" >';
                                                             echo '</td>';
                                                             
                                                             echo '<td>';
@@ -456,7 +454,7 @@
                                                             echo '<tr>';
                                                             echo '<td>V&Yacute;DAVOK:</td>';
                                                             echo '<td>';
-                                                            echo '<input type="text" name="suma" readonly disabled value="'.$_POST["vydavok"].'"  style="font-size: 25pt" size="8">';
+                                                            echo '<input type="text" name="suma" readonly disabled value="'.ekasa_html($_POST["vydavok"]).'"  style="font-size: 25pt" size="8">';
                                                             echo '</td>';
                                                             echo '</tr>';       
                                                             
@@ -467,7 +465,7 @@
                                            <?php                                              
                                         }
                                                                             
-                                else {echo '<br /><br />Nezn�ma chyba, kontaktujte spr�vcu.';}
+                                else {echo '<br /><br />Neznáma chyba, kontaktujte správcu.';}
                 
                break;
 
@@ -487,8 +485,7 @@
                     $eID = mysql_insert_id();
                     //echo $eID;
                     
-                    $suma           =   $_POST["suma"];
-                    $suma           =   str_replace (',','.',$suma);
+                    $suma           =   ekasa_cislo($_POST["suma"]);
                     $suma           =   abs ($suma);
                     $novy_zostatok  =   $zostatok - $suma;       
                     $suma_negativna = 0 -$suma;      
@@ -512,32 +509,32 @@
                     $response_json = callAPI('POST', $function_url, json_encode($data_array));
                     $response  = json_decode($response_json, true);
                     
-                                // poradov� ��slo dokladu
+                                // poradové číslo dokladu
                                $receipt_number = $response['request']['data']['receiptNumber'];
                                $okp = $response['request']['data']['okp'];
-                               // cel� pole s obsahom doklada a d�tami
+                               // celé pole s obsahom doklada a dátami
                                $receipt_data = $response['request']['data'];
-                               // �daje z ekasa serveru
+                               // údaje z ekasa serveru
                                $UID = $response['response']['data']['id'];
                                $processDate = $response['response']['processDate'];
                                $isSuccessful = $response['isSuccessful'];
-                               // z�znamy o chyb�ch zo syst�mu ekasa
+                               // záznamy o chybách zo systému ekasa
                                $error =  $response['error'];
                                $error_code =  $response['error']['code'];
                                $error_message =  $response['error']['message'];
                               
                                if ($isSuccessful)  {
-                                       echo 'Z�pis OK. M��e� zavrie� okno.';
+                                       echo 'Zápis OK. Môžeš zavrieť okno.';
                                        ?>
                                        <script language="javascript">
                                         window.parent.opener.location.reload();
                                         </script> <br><br>
                                         <button type="button" 
-                                            onclick="window.open('', '_self', ''); window.close();">Zavrie� okno</button>
+                                            onclick="window.open('', '_self', ''); window.close();">Zavrieť okno</button>
                                        <?php
                                        
                                } else {
-                                       echo 'Vyskytla sa chyba! Pros�m informuj administr�tora!<br /><br />Error log:<br />';
+                                       echo 'Vyskytla sa chyba! Prosím informuj administrátora!<br /><br />Error log:<br />';
                                        echo $response_json; 
                                        $email = "eID: ".$eID."\n\n".$response_json;
                                        tep_mail('Admin', 'antal@atac-sro.eu', 'Notifikacia - chyba portos kasa', $email, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);  
@@ -558,7 +555,7 @@
                                                 'error' => tep_db_prepare_input($error),
                                                 'admin' => tep_db_prepare_input($autorizoval),
                                                 'autorizovane' => tep_db_prepare_input($autorizovane),
-                                                'poznamka' => tep_db_prepare_input($poznamkaInterna));
+                                                'poznamka' => tep_db_prepare_input(ekasa_do_db($poznamkaInterna)));
                                                 
                           $sql = tep_db_perform('ekasa_doklady', $sql_data_array,'update',"eID = '".$eID."'");
                 
@@ -571,7 +568,7 @@
             
             case 'blocek_generuj':
 
-            // ========> zalo�im riadok dokladu v databaze a zistim jeho id
+            // ========> založim riadok dokladu v databaze a zistim jeho id
                     $datum = date('Y-m-d');
                     $vypis = tep_db_query("select hotovost_zostatok from ekasa_doklady WHERE date <='$datum' ORDER BY eID DESC LIMIT 1");
                         while ( $zostatok_a = tep_db_fetch_array($vypis)) {
@@ -580,16 +577,16 @@
                     $sql_zaloz_id = tep_db_query("insert into ekasa_doklady (type, cashRegisterCode, date, hotovost_zostatok) values ('cash_register', '".CASH_REGISTER_CODE."', '" . tep_db_input($datum) . "', '".tep_db_input($zostatok)."')");
                     $eID = mysql_insert_id();
                     
-                    $roundingAmount =   $_POST["zaokruhlenie"];
-                    $hotovost       =   $_POST["hotovost_ma_dat"];
+                    $roundingAmount =   ekasa_cislo($_POST["zaokruhlenie"]);
+                    $hotovost       =   ekasa_cislo($_POST["hotovost_ma_dat"]);
                     $novy_zostatok  =   $zostatok + $hotovost;
-                    if (isset($_POST["hotovost_ma_dat"])) {$hotovost=$_POST["hotovost_ma_dat"];} else {$hotovost=0;}
-                    $platba_kartou  =   $_POST["karta"];  
-                    if (isset($_POST["karta"])) {$platba_kartou=$_POST["karta"];} else {$platba_kartou=0;}
-               //   pr�prava premenn�ch pre doklad     
+                    if (isset($_POST["hotovost_ma_dat"])) {$hotovost=ekasa_cislo($_POST["hotovost_ma_dat"]);} else {$hotovost=0;}
+                    $platba_kartou  =   ekasa_cislo($_POST["karta"]);  
+                    if (isset($_POST["karta"])) {$platba_kartou=ekasa_cislo($_POST["karta"]);} else {$platba_kartou=0;}
+               //   príprava premenných pre doklad     
                     include ('portos/ekasa_priprav_data.php');
             // ========>
-            // ========>  premenn� => po�iadavka
+            // ========>  premenné => požiadavka
                     echo '<br /><br />';
 
                     // VOLANIE API 
@@ -607,17 +604,17 @@
                           500: server-side error occurs.
                     */
                     
-                    // poradov� ��slo dokladu
+                    // poradové číslo dokladu
                                $receipt_number = $response['request']['data']['receiptNumber'];
                                $amount = $response['request']['data']['amount'];
                                $okp = $response['request']['data']['okp'];
-                               // cel� pole s obsahom doklada a d�tami
+                               // celé pole s obsahom doklada a dátami
                                $receipt_data = $response['request']['data'];
-                               // �daje z ekasa serveru
+                               // údaje z ekasa serveru
                                $UID = $response['response']['data']['id'];
                                $processDate = $response['response']['processDate'];
                                $isSuccessful = $response['isSuccessful'];
-                               // z�znamy o chyb�ch zo syst�mu ekasa
+                               // záznamy o chybách zo systému ekasa
                                $error =  $response['error'];
                                $error_code =  $response['error']['code'];
                                $error_message =  $response['error']['message'];
@@ -629,17 +626,17 @@
                             $autorizoval = $myAccount['admin_name'];
                               
                                if ($isSuccessful) {
-                                       echo 'Z�pis OK. M��e� zavrie� okno.';
+                                       echo 'Zápis OK. Môžeš zavrieť okno.';
                                        ?>
                                        <script language="javascript">
                                         window.parent.opener.location.reload();
                                         </script> 
                                         <button type="button" 
-                                            onclick="window.open('', '_self', ''); window.close();">Zavrie� okno</button>
+                                            onclick="window.open('', '_self', ''); window.close();">Zavrieť okno</button>
                                        <?php
                                        
                                } else {
-                                       echo 'Vyskytla sa chyba! Pros�m informuj administr�tora!<br /><br />Error log:<br />';
+                                       echo 'Vyskytla sa chyba! Prosím informuj administrátora!<br /><br />Error log:<br />';
                                        echo $response_json; 
                                        $email = "eID: ".$eID."\n\n".$response_json;
                                        tep_mail('Admin', 'antal@atac-sro.eu', 'Notifikacia - chyba portos kasa', $email, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);
@@ -654,7 +651,7 @@
                       if ($doklad_na_email) {$zakaznik_email=$_POST["email"];} else {$zakaznik_email='';}
                       $sql_data_array = array(  'UID' => tep_db_prepare_input($UID),                                           
                                                 'oID' => $oID,                                                                   
-                                                'client_name' => tep_db_prepare_input($zakaznik_meno),
+                                                'client_name' => tep_db_prepare_input(ekasa_do_db($zakaznik_meno)),
                                                 'email' => tep_db_prepare_input($zakaznik_email),
                                                 'receiptNumber' => tep_db_prepare_input($receipt_number),
                                                 'year' => tep_db_prepare_input($year),
@@ -671,28 +668,28 @@
                                                 'response' => $response_json,
                                                 'error' => tep_db_prepare_input($error),
                                                 'admin' => tep_db_prepare_input($autorizoval),
-                                                'poznamka' => tep_db_prepare_input($poznamkaInterna));
+                                                'poznamka' => tep_db_prepare_input(ekasa_do_db($poznamkaInterna)));
                                                 
                           $sql = tep_db_perform('ekasa_doklady', $sql_data_array,'update',"eID = '".$eID."'");
 
                 if ($zlava_pritomna) {
-                            $polozka_z = "Z�ava " .$_POST["zlava_p"];
+                            $polozka_z = "Zľava " .$_POST["zlava_p"];
                             $zlava_m_bez_dph = $zlava_m / 1.2;
-                            tep_db_query("insert into " . TABLE_ORDERS_PRODUCTS . " (orders_id, products_model, products_name, products_price, final_price, products_tax, products_quantity) values ('" . (int)$oID . "', 'ZLAVA', '" . tep_db_input($polozka_z) . "', " . tep_db_input($zlava_m_bez_dph)  . ", " . tep_db_input($zlava_m_bez_dph). ", 20, 1)");
+                            tep_db_query("insert into " . TABLE_ORDERS_PRODUCTS . " (orders_id, products_model, products_name, products_price, final_price, products_tax, products_quantity) values ('" . (int)$oID . "', 'ZLAVA', '" . tep_db_input(ekasa_do_db($polozka_z)) . "', " . tep_db_input($zlava_m_bez_dph)  . ", " . tep_db_input($zlava_m_bez_dph). ", 20, 1)");
                 }
 
                 if ($isSuccessful){
                    $sql_order = tep_db_query("update orders set orders_status = 2, last_modified = now(), blocek = '" . (int)$eID . "' where orders_id = '" . (int)$oID . "'");
-                   $komentar = "ekasa/CHDU portos - objedn�vka uzavret� a vy��tovan� pokladni�n�m blo�kom v celkovej sume ".$amount." �"."\n"." (zaokr�hlenie: ".$roundingAmount.")";
-                   if ($zlava_pritomna) {$komentar .= "\n\n" . "Z�AVA: ". $zlava_m . " � [".$_POST["zlava_p"]."]";}
-                   $komentar .= "\n\nPlatidl�:\nHotovos� = ".$hotovost."\nKarta= ".$platba_kartou."\nUID blo�ka = ".$UID."\n��slo blo�ka = ".$receipt_number."\nNa�e ID blo�ka = ".$eID.$email_log;
-                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input($komentar) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
+                   $komentar = "ekasa/CHDU portos - objednávka uzavretá a vyúčtovaná pokladničným bločkom v celkovej sume ".$amount." €"."\n"." (zaokrúhlenie: ".$roundingAmount.")";
+                   if ($zlava_pritomna) {$komentar .= "\n\n" . "ZĽAVA: ". $zlava_m . " € [".$_POST["zlava_p"]."]";}
+                   $komentar .= "\n\nPlatidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
+                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input(ekasa_do_db($komentar)) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
                 } else {
                    //$sql_order = tep_db_query("update orders set orders_status = 2, last_modified = now(), blocek = '" . (int)$eID . "' where orders_id = '" . (int)$oID . "'");
-                   $komentar = "ekasa/CHDU portos - chyba pri tla�i blo�ka"."\n\n".$response_json."\n\n";
-                   if ($zlava_pritomna) {$komentar .= "\n\n" . "Z�AVA: ". $zlava_m . " � [".$_POST["zlava_p"]."]";}
-                   $komentar .= "\n\nPlatidl�:\nHotovos� = ".$hotovost."\nKarta= ".$platba_kartou."\nUID blo�ka = ".$UID."\n��slo blo�ka = ".$receipt_number."\nNa�e ID blo�ka = ".$eID.$email_log;
-                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input($komentar) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
+                   $komentar = "ekasa/CHDU portos - chyba pri tlači bločka"."\n\n".$response_json."\n\n";
+                   if ($zlava_pritomna) {$komentar .= "\n\n" . "ZĽAVA: ". $zlava_m . " € [".$_POST["zlava_p"]."]";}
+                   $komentar .= "\n\nPlatidlá:\nHotovosť = ".$hotovost."\nKarta= ".$platba_kartou."\nUID bločka = ".$UID."\nČíslo bločka = ".$receipt_number."\nNaše ID bločka = ".$eID.$email_log;
+                   $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input(ekasa_do_db($komentar)) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
                 }
 
 
@@ -700,24 +697,24 @@
                 // $sql = true;
                   
                   if ($sql) {
-                                echo '<br />Z�znam bol ulo�en� do datab�zy, m��ete zavrie� okno.<br /><br />';
+                                echo '<br />Záznam bol uložený do databázy, môžete zavrieť okno.<br /><br />';
                                                     echo '<table>';
 
                                                     echo '<tr>';
-                                                    echo '<td>Suma n�kupu:</td>';
+                                                    echo '<td>Suma nákupu:</td>';
                                                     echo '<td>';
                                                     echo '<input type="text" name="suma" id="suma" value="'.$medzisucet.'"  readonly disabled style="font-size: 25pt" size="8">';
                                                     echo '</td>';
                                                     echo '<td>';
-                                                    echo '�';
+                                                    echo '€';
                                                     echo '</td>';
                                                     echo '</tr>';
                                                 
                                                     echo '<tr>';
-                                                    echo '<td>Z�ava:</td>';
+                                                    echo '<td>Zľava:</td>';
                                                     echo '<td>';
-                                                    echo '<input type="text" name="zlava_p" id="zlava_p" value="'.$_POST["zlava_p"].'" readonly disabled style="font-size: 20pt" size="2">';
-                                                    echo '<input type="text" name="zlava_suma" id="zlava_suma" value="'.$_POST["zlava_suma"].'" readonly disabled style="font-size: 20pt" size="3">';
+                                                    echo '<input type="text" name="zlava_p" id="zlava_p" value="'.ekasa_html($_POST["zlava_p"]).'" readonly disabled style="font-size: 20pt" size="2">';
+                                                    echo '<input type="text" name="zlava_suma" id="zlava_suma" value="'.ekasa_cislo($_POST["zlava_suma"]).'" readonly disabled style="font-size: 20pt" size="3">';
                                                     echo '</td>';
                                                     echo '<td>';
                                                     echo '</td>';
@@ -726,7 +723,7 @@
                                                     echo '<tr>';
                                                     echo '<td>Platba kartou:</td>';
                                                     echo '<td>';
-                                                    $karta_sql = str_replace (',','.',$_POST["karta"]);
+                                                    $karta_sql = ekasa_cislo($_POST["karta"]);
                                                     echo '<input type="text" name="karta" readonly disabled value="'.$karta_sql.'"  style="font-size: 25pt" size="8">';
                                                     echo '</td>';
                                                     echo '<td>';
@@ -737,7 +734,7 @@
                                                     echo '<td>ZAOKR&Uacute;HLENIE:</td>';
                                                     echo '<td>';
                                                     
-                                                    echo '<input type="text" name="hotovost" value="'.$_POST["zaokruhlenie"].'" readonly disabled style="font-size: 25pt" size="8" >';
+                                                    echo '<input type="text" name="hotovost" value="'.ekasa_cislo($_POST["zaokruhlenie"]).'" readonly disabled style="font-size: 25pt" size="8" >';
                                                     echo '</td>';
 
 
@@ -745,7 +742,7 @@
                                                     echo '<td>HOTOVOS&#356;:</td>';
                                                     echo '<td>';
                                                     
-                                                    echo '<input type="text" name="hotovost" value="'.$_POST["hotovost"].'" readonly disabled style="font-size: 25pt" size="8" >';
+                                                    echo '<input type="text" name="hotovost" value="'.ekasa_cislo($_POST["hotovost"]).'" readonly disabled style="font-size: 25pt" size="8" >';
                                                     echo '</td>';
                                                     
                                                     echo '<td>';
@@ -755,7 +752,7 @@
                                                     echo '<tr>';
                                                     echo '<td>V&Yacute;DAVOK:</td>';
                                                     echo '<td>';
-                                                    echo '<input type="text" name="suma" readonly disabled value="'.$_POST["vydavok"].'"  style="font-size: 25pt" size="8">';
+                                                    echo '<input type="text" name="suma" readonly disabled value="'.ekasa_html($_POST["vydavok"]).'"  style="font-size: 25pt" size="8">';
                                                     echo '</td>';
                                                     echo '</tr>';       
                                                     
@@ -765,17 +762,17 @@
                                         </script>
                                    <?php                                              
                                 }
-                        else {echo '<br /><br />Nezn�ma chyba, kontaktujte spr�vcu.';}
+                        else {echo '<br /><br />Neznáma chyba, kontaktujte správcu.';}
                     break;
     
       
                 default:
         
-        //     <meta http-equiv="Content-Type" content="text/html; charset=cp-1250">
+        //     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         ?> 
         <html>
               <head>
-                  <meta http-equiv="Content-Type" content="text/html; charset=cp-1250">
+                  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                   <title><?php echo APP_NAME.' '.APP_VERSION;?></title>
                   <script language="javascript" src="portos/jquery-2.2.4.min.js"></script>
                   <script language="javascript" src="portos/ekasa_skripty.js"></script>
@@ -881,12 +878,12 @@
 
                         if ($_GET["banka"]=="FIO") {
                                 $poznamka = "VYBER-FIO";
-                                $interna_poznamka = "vklad hotovosti na ��et FIO";
+                                $interna_poznamka = "vklad hotovosti na účet FIO";
                                 $readonly = "readonly";
                                 echo '<input type="hidden" name="banka" value="FIO">';
                         } else if ($_GET["banka"]=="TABA") {
                                 $poznamka = "VYBER-TABA";
-                                $interna_poznamka = "vklad hotovosti na ��et Tatra banka";
+                                $interna_poznamka = "vklad hotovosti na účet Tatra banka";
                                 $readonly = "readonly";
                                 echo '<input type="hidden" name="banka" value="FIO">';
                         } else {
@@ -942,10 +939,10 @@
                         echo '<td colspan="3">eKASA - Portos '.$br.'['.$systemovy_stav.']'.$hlasenie.'</td>';
                         echo '</tr>';                           
                          if ($_GET["zdroj"]=="manual") {
-                                 $suma = $_GET["suma"];
-                                 $cislo_faktury = ocisti($_GET["cislo_faktury"]);
+                                 $suma = ekasa_cislo($_GET["suma"]);
+                                 $cislo_faktury = mb_substr($_GET["cislo_faktury"], 0, 42, 'UTF-8');
                          } else if ($_GET["zdroj"]=="objednavka") {
-                                    $cislo_faktury = ocisti($_GET["cislo_faktury"]);
+                                    $cislo_faktury = mb_substr($_GET["cislo_faktury"], 0, 42, 'UTF-8');
                                     $my_account_query = tep_db_query ("SELECT admin_name, sf_email, sf_kluc FROM administrators WHERE user_name= '" . $admin['username'] ."'");
                                     $myAccount = tep_db_fetch_array($my_account_query);
                                     $admin_name = $myAccount['admin_name'];
@@ -1015,7 +1012,7 @@
                         echo '<tr>';
                         echo '<td>&#268;&iacute;slo fakt&uacute;ry:</td>';
                         echo '<td>';
-                        echo '<input type="text" name="cislo_faktury" value="'.$cislo_faktury.'" style="font-size: 20pt" size="20" tabindex=1  onfocus="this.select();" >';
+                        echo '<input type="text" name="cislo_faktury" value="'.ekasa_html($cislo_faktury).'" style="font-size: 20pt" size="20" tabindex=1  onfocus="this.select();" >';
                         echo '</td>';
                         echo '<td>';
                         echo '</td>';
@@ -1037,7 +1034,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<br />Sp�taj sa na sp�sob platby a klikni ni��ie:<br />';
+                        echo '<br />Spýtaj sa na spôsob platby a klikni nižšie:<br />';
                         echo '</td>';
                         echo '<td>';
                         echo '';
@@ -1081,8 +1078,8 @@
                         echo '<input type="text" name="hotovost" value="'.$hotovost.'" style="font-size: 25pt" size="8" tabindex=1 id = "hotovost" onfocus="this.select();" oninput= "zmenaHotovosti();">';
                         echo '</td>';
                         echo '<td>';
-         // =====> doplni� funkcie    
-         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLA�I� BLO�EK</button>';
+         // =====> doplniť funkcie    
+         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLAČIŤ BLOČEK</button>';
                         echo '</td>';
                         echo '</tr>';      
           
@@ -1101,22 +1098,22 @@
                         echo '<input type="text" name="vydavok" value="NIE" readonly id="vydavok" style="font-size: 25pt" size="8">';
                         echo '</td>';
                         echo '<td>';
-                   //     echo '<button type="button" onclick="location.hash = '."'#prvy_riadok'".';" class="button_zrusit">NA<br />ZA�IATOK</button>';
+                   //     echo '<button type="button" onclick="location.hash = '."'#prvy_riadok'".';" class="button_zrusit">NA<br />ZAČIATOK</button>';
                         echo '</td>';
                         echo '</tr>';       
            
            
-           /*  dorobi� mo�nos� posiela� blo�ek na email                                   
+           /*  dorobiť možnosť posielať bloček na email                                   
                         $email = $order->customer['email_address'];
                         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                                 echo '<tr id="email_tr">';
                                 echo '<td>Email:</td>';
                                 echo '<td>';
-                                echo 'V objedn�vke je zadan� email, <b>sp�taj sa z�kazn�ka, �i chce blo�ek vytla�i� alebo posla� na email?</b><br />Email je potrebn� skontrolova�. Blo�ek nie je mo�n� zasla� opakovane, ani ho nesk�r vytla�i�.<br /><br />';
-                                echo '<input type="text" name="email" value="'.$email.'" style="font-size: 12pt" size="30"  id = "email">';
+                                echo 'V objednávke je zadaný email, <b>spýtaj sa zákazníka, či chce bloček vytlačiť alebo poslať na email?</b><br />Email je potrebné skontrolovať. Bloček nie je možné zaslať opakovane, ani ho neskôr vytlačiť.<br /><br />';
+                                echo '<input type="text" name="email" value="'.ekasa_html($email).'" style="font-size: 12pt" size="30"  id = "email">';
                                 echo '</td>';
                                 echo '<td>';
-                            //    echo '<button type="button" onclick="generujBlocek('.$oID.');" class="button_blocek">GENERUJ BLO�EK</button>';
+                            //    echo '<button type="button" onclick="generujBlocek('.$oID.');" class="button_blocek">GENERUJ BLOČEK</button>';
                                 echo '</td>';
                                 echo '</tr>';                              
                         }          
@@ -1168,8 +1165,8 @@
                 case 'PredajCasopis':
                         
                         $description = $_GET["description"];
-                        $pocet = $_GET["pocet"];
-                        $cena = $_GET["cena"];
+                        $pocet = ekasa_cislo($_GET["pocet"]);
+                        $cena = ekasa_cislo($_GET["cena"]);
                         $name = $_GET["name"];
                         $medzisucet = $cena * $pocet;
                         
@@ -1188,7 +1185,7 @@
                         echo '</tr>';
                                                  
                         echo '<tr>';
-                        echo '<td>Suma n�kupu:</td>';
+                        echo '<td>Suma nákupu:</td>';
                         echo '<td>';
                         echo '<input type="text" name="suma" id="suma" value="'.$medzisucet.'"  readonly disabled style="font-size: 20pt" size="10">';
                         echo '</td>';
@@ -1198,13 +1195,13 @@
                         echo '</tr>';
 
                         echo '<tr>';
-                        echo '<td>Z�ava:</td>';
+                        echo '<td>Zľava:</td>';
                         echo '<td>';
                         echo '<input type="text" name="zlava_p" id="zlava_p" value="0%" readonly style="font-size: 20pt" size="2"> ' ;
                         echo '&nbsp <input type="text" name="zlava_suma" id="zlava_suma" value="0.00" readonly style="font-size: 20pt" size="3">';
                         echo '</td>';
                         echo '<td>';
-                        echo '<button type="button" onclick="dajZlavu();" class="button_karta">ZADAJ Z�AVU</button>';
+                        echo '<button type="button" onclick="dajZlavu();" class="button_karta">ZADAJ ZĽAVU</button>';
                         echo '</td>';
                         echo '</tr>';
 
@@ -1213,7 +1210,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<br />Pre pokra�ovanie sa sp�taj klienta na sp�sob platby a klikni ni��ie:<br /><br />';
+                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br /><br />';
                         echo '</td>';
                         echo '<td>';
                         echo '';
@@ -1225,7 +1222,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                         echo '<input type="hidden" name="email" value="" id="email">'; //nem� funkciu, vol� ho v�ak javascript
+                         echo '<input type="hidden" name="email" value="" id="email">'; //nemá funkciu, volá ho však javascript
                         echo '<button type="button" onclick="location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
                         echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button>';
                         echo '</td>';
@@ -1272,7 +1269,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td><br />';
-                        echo '<button type="button" onclick="generujBlocek();" class="button_blocek">VYTLA� DOKLAD</button> &nbsp';
+                        echo '<button type="button" onclick="generujBlocek();" class="button_blocek">VYTLAČ DOKLAD</button> &nbsp';
                         echo '</td>';
                         echo '<td>';                                                                                                        
                         echo '</td>';
@@ -1317,18 +1314,18 @@
                         echo '<tr id="prvy_riadok">';
                         echo '<td>Klient:</td>';
                         echo '<td>';
-                        echo '<input type="text" name="klient" id="klient" value="'.$order->customer['name'].'"  readonly disabled style="font-size: 12pt" size="30">';
-                        if ($order->customer['zlava']>0) {echo '<b><font color="red">Klient m� nastaven� z�avu '.$order->customer['zlava'].'%</font></b>';}
+                        echo '<input type="text" name="klient" id="klient" value="'.ekasa_html(ekasa_z_db($order->customer['name'])).'"  readonly disabled style="font-size: 12pt" size="30">';
+                        if ($order->customer['zlava']>0) {echo '<b><font color="red">Klient má nastavenú zľavu '.ekasa_html($order->customer['zlava']).'%</font></b>';}
                         echo '</td>';
                         echo '<td>';
                         if ( $cID > 0)   {
-                                    echo '<button type="button"  onclick="window.open('."'".FILENAME_ORDERS.'?cID='.$cID."'".', '."'".'_blank'."'".' );" class="button_karta">HIST�RIA KLIENTA</button>';
+                                    echo '<button type="button"  onclick="window.open('."'".FILENAME_ORDERS.'?cID='.$cID."'".', '."'".'_blank'."'".' );" class="button_karta">HISTÓRIA KLIENTA</button>';
                                 }
                         echo '</td>';      
                         echo '</tr>';
                                                  
                         echo '<tr>';
-                        echo '<td>Suma n�kupu:</td>';
+                        echo '<td>Suma nákupu:</td>';
                         echo '<td>';
                         echo '<input type="text" name="suma" id="suma" value="'.$medzisucet.'"  readonly disabled style="font-size: 20pt" size="10">';
                         echo '</td>';
@@ -1338,13 +1335,13 @@
                         echo '</tr>';
 
                         echo '<tr>';
-                        echo '<td>Z�ava:</td>';
+                        echo '<td>Zľava:</td>';
                         echo '<td>';
                         echo '<input type="text" name="zlava_p" id="zlava_p" value="0%" readonly style="font-size: 20pt" size="2"> ' ;
                         echo '&nbsp <input type="text" name="zlava_suma" id="zlava_suma" value="0.00" readonly style="font-size: 20pt" size="3">';
                         echo '</td>';
                         echo '<td>';
-                        echo '<button type="button" onclick="dajZlavu();" class="button_karta">ZADAJ Z�AVU</button>';
+                        echo '<button type="button" onclick="dajZlavu();" class="button_karta">ZADAJ ZĽAVU</button>';
                         echo '</td>';
                         echo '</tr>';
 
@@ -1353,7 +1350,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<br />Pre pokra�ovanie sa sp�taj klienta na sp�sob platby a klikni ni��ie:<br /><br />';
+                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br /><br />';
                         echo '</td>';
                         echo '<td>';
                         echo '';
@@ -1369,8 +1366,8 @@
                         echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button>';
                         echo '</td>';
                         echo '<td>';                                                                                                        
-            //          echo '<button type="button" onclick="window.close();" class="button_zrusit">ZAVRIE� OKNO</button>';
-            //          echo '<button type="button" onclick='.'"javascript:var win = window.open'."('', '_self')".';win.close();return false;"'.' class="button_zrusit">ZAVRIE� OKNO</button>';
+            //          echo '<button type="button" onclick="window.close();" class="button_zrusit">ZAVRIEŤ OKNO</button>';
+            //          echo '<button type="button" onclick='.'"javascript:var win = window.open'."('', '_self')".';win.close();return false;"'.' class="button_zrusit">ZAVRIEŤ OKNO</button>';
                         echo '</td>';
                         echo '</tr>';
                         
@@ -1402,8 +1399,8 @@
                         echo '<input type="text" name="hotovost" value="'.$hotovost.'" style="font-size: 25pt" size="8" tabindex=1 id = "hotovost" onfocus="this.select();" oninput= "zmenaHotovosti();">';
                         echo '</td>';
                         echo '<td>';
-         // =====> doplni� funkcie    
-         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLA�I� BLO�EK</button>';
+         // =====> doplniť funkcie    
+         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLAČIŤ BLOČEK</button>';
                         echo '</td>';
                         echo '</tr>';      
           
@@ -1413,8 +1410,8 @@
                         echo '<input type="text" name="zaokruhlenie" value="'.$zaokruhlenie.'" style="font-size: 25pt" size="8" tabindex=1 id = "zaokruhlenie" readonly>';
                         echo '</td>';
                         echo '<td>';
-         // =====> doplni� funkcie    
-         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLA�I� BLO�EK</button>';
+         // =====> doplniť funkcie    
+         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLAČIŤ BLOČEK</button>';
                         echo '</td>';
                         echo '</tr>';             
                      
@@ -1424,13 +1421,13 @@
                         echo '<input type="text" name="vydavok" value="NIE" readonly id="vydavok" style="font-size: 25pt" size="8">';
                         echo '</td>';
                         echo '<td>';
-                   //     echo '<button type="button" onclick="location.hash = '."'#prvy_riadok'".';" class="button_zrusit">NA<br />ZA�IATOK</button>';
+                   //     echo '<button type="button" onclick="location.hash = '."'#prvy_riadok'".';" class="button_zrusit">NA<br />ZAČIATOK</button>';
                         echo '</td>';
                         echo '</tr>';       
            
            
-           //  dorobi� mo�nos� posiela� blo�ek na email
-                  //    dovol� iba mne!
+           //  dorobiť možnosť posielať bloček na email
+                  //    dovolí iba mne!
                   //if (CASH_REGISTER_CODE =='88812345678900001') {
                         $email = $order->customer['email_address'];
                         $email_button = false;
@@ -1439,12 +1436,12 @@
                                 echo '<tr id="email_tr">';
                                 echo '<td>Email:</td>';
                                 echo '<td>';
-                                echo '<br />V objedn�vke je zadan� email, <b>Email je potrebn� skontrolova�!</b><br /><br />';
-                                echo '<input type="text" name="email_input" value="'.$email.'" style="font-size: 12pt" size="30"  id = "email_input">';
+                                echo '<br />V objednávke je zadaný email, <b>Email je potrebné skontrolovať!</b><br /><br />';
+                                echo '<input type="text" name="email_input" value="'.ekasa_html($email).'" style="font-size: 12pt" size="30"  id = "email_input">';
                                 echo '<input type="hidden" name="email" value="" id="email">';
                                 echo '</td>';
                                 echo '<td>';
-                                echo '<button type="button" onclick="generujBlocek(true);" class="button_blocek">DOKLAD NA EMAIL<br />(BEZ TLA�E)</button>';
+                                echo '<button type="button" onclick="generujBlocek(true);" class="button_blocek">DOKLAD NA EMAIL<br />(BEZ TLAČE)</button>';
                                 echo '</td>';
                                 echo '</tr>';                              
                         } else {
@@ -1463,7 +1460,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td><br />';
-                        echo '<button type="button" onclick="generujBlocek(false);" class="button_blocek">VYTLA� DOKLAD</button> &nbsp';
+                        echo '<button type="button" onclick="generujBlocek(false);" class="button_blocek">VYTLAČ DOKLAD</button> &nbsp';
                     /*
                         if ($email_button) {
                         echo '<button type="button" onclick="generujBlocek(true);" class="button_blocek">DOKLAD NA EMAIL</button> &nbsp';

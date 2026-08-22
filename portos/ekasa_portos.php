@@ -87,11 +87,55 @@
       //     return $result_decoded;
     }
     
-        function ocisti($string){
+    // ***********************************************************************
+    // Kodovanie: zdrojove subory, GUI a Portos API pracuju v UTF-8,
+    // databaza osCommerce pracuje v starom kodovani Windows-1250 (cp1250).
+    // Preto sa kazdy text konvertuje na hranici databazy:
+    //   ekasa_z_db()  = cp1250 -> UTF-8 (citanie z databazy, vypis, API)
+    //   ekasa_do_db() = UTF-8 -> cp1250 (zapis do databazy)
+    // ***********************************************************************
+
+        function ekasa_z_db($string){
+            if (!is_string($string) || $string === '') {
+                return $string;
+            }
             $converted = iconv('Windows-1250', 'UTF-8//TRANSLIT', $string);
             if ($converted === false) {
                 $converted = $string;
             }
-            return mb_substr($converted, 0, 42, 'UTF-8');
+            return $converted;
+    }
+
+        function ekasa_do_db($string){
+            if (!is_string($string) || $string === '') {
+                return $string;
+            }
+            $converted = iconv('UTF-8', 'Windows-1250//TRANSLIT', $string);
+            if ($converted === false) {
+                $converted = $string;
+            }
+            return $converted;
+    }
+
+    // suma zadana pokladnikom moze obsahovat desatinnu ciarku - prepiseme ju na bodku
+        function ekasa_cislo($hodnota){
+            if (is_array($hodnota)) {
+                return 0;
+            }
+            $hodnota = str_replace(array(' ', "\xc2\xa0"), '', (string)$hodnota);
+            $hodnota = str_replace(',', '.', $hodnota);
+            if ($hodnota === '' || !is_numeric($hodnota)) {
+                return 0;
+            }
+            return (float)$hodnota;
+    }
+
+    // bezpecny vypis textu do HTML (stranka je v UTF-8)
+        function ekasa_html($string){
+            return htmlspecialchars((string)$string, ENT_QUOTES, 'UTF-8');
+    }
+
+        function ocisti($string){
+            return mb_substr(ekasa_z_db($string), 0, 42, 'UTF-8');
     }
 ?>

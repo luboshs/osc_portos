@@ -33,14 +33,14 @@
 
         $ip_lubos_doma = '89.173.21.148';
         
-       //  ip - zoberie z cookies alebo defaulte inÈ
+       //  ip - zoberie z cookies alebo defaulte in√©
         if(isset($_COOKIE['ip_address'])) {
             $ip_address = $_COOKIE['ip_address'];
-            // Uloûen· IP adresa z cookies
+            // Ulo≈æen√° IP adresa z cookies
             define('IP', $ip_address);
             define('IP_SOURCE', 'cookie');
         } else {
-            // IP adresa nie je v cookies uloûen·.
+            // IP adresa nie je v cookies ulo≈æen√°.
             // ************************************************
             define('IP', '91.127.65.37');
             define('IP_SOURCE', 'default');
@@ -49,10 +49,10 @@
                 
         // identifikuj ekasu         
         if (IP==$ip_lubos_doma) {
-            // toto je tlaËiareÚ doma - testovacie            
+            // toto je tlaƒçiare≈à doma - testovacie            
              define('CASH_REGISTER_CODE', '88812345678900001');
         } else {
-           // toto je tlaËiareÚ na prev·dzke
+           // toto je tlaƒçiare≈à na prev√°dzke
              define('CASH_REGISTER_CODE', '88820229533830001');        
         }
         
@@ -62,7 +62,7 @@
         define('EMAIL_PREDMET', 'Vas e-doklad k nakupu');
         define('EMAIL_TEXT', 'Dakujeme za Vas nakup, Vas doklad je v prilohe tohto emailu.');
 
-        // URL pre pokladniËn˝ doklad je 'requests/receipts/cash_register'
+        // URL pre pokladniƒçn√Ω doklad je 'requests/receipts/cash_register'
         define('HEADER_TEXT', 'PREDAJNA MODELOVA ZELEZNICA TRNAVA'."\n");
         define('FOOTER_TEXT', 'www.modelovazeleznica.sk'."\n".'Dakujeme za Vas nakup!'."\n".'Nase ID-dokladu: ');
 
