@@ -15,6 +15,7 @@
        $blocek_polozky = "";
        $ekasa_zlava =0;
        $zlava_pritomna = false;
+       $celkova_usporena = 0;
         
        // Extrahovanie percentuálnej zľavy z POST
        // povolený rozsah je 1 až 15 %, iné hodnoty sa ignorujú
@@ -74,7 +75,9 @@
                                         // name: do 255 znakov, sem budeme dávať katalógové číslo
                                         $products_model = str_replace (' [KC]','',$order->products[$i]['model']);
                                         $products_model = str_replace ('[KC]','',$products_model);
-                                        $name           = '> ' . ocisti($products_model);
+                                        $model_ocisteny = ocisti($products_model);
+                                        // kazda nova polozka zacina znackou "> "
+                                        $name           = '> ' . $model_ocisteny;
                                          
                                         // Kontrola či položka obsahuje [KC] - ak áno, nebude sa na ňu aplikovať zľava
                                         $contains_kc = (stripos($order->products[$i]['model'], '[kc]') !== false) || (stripos($order->products[$i]['name'], '[kc]') !== false);
@@ -128,8 +131,6 @@
                                         // Aplikovanie zľavy na položku (ak nie je KC a ide o kladnú cenu)
                                         if ($type == "Positive" && !$contains_kc && $zlava_percent > 0) {
                                                 $discount_amount = $unitprice * ($zlava_percent / 100);
-                                                $discounted_unitprice = $unitprice - $discount_amount;
-                                                $discounted_unitprice = round($discounted_unitprice, 6);
                                                   
                                                 // Pridaj pôvodnú položku
                                                 $items [] =   array (   'type'        =>    $type,
@@ -139,22 +140,28 @@
                                                                         'unitPrice'   =>    $unitprice,
                                                                         'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
                                                                         'vatRate'     =>    $sadzba_DPH);
+                                                $medzisucet += $price;
                                                   
                                                 // Pridaj diskontnú položku (negatívnu)
                                                 $discount_price = round(-abs($discount_amount * $quantity), 2);
                                                 $discount_unitprice = round(-abs($discount_amount), 6);
                                                   
-                                                $items [] =   array (   'type'        =>    'Discount',
-                                                                        'name'        =>    $name . ' - ZLAVA ' . $zlava_percent . '%',
-                                                                        'description' =>    $description . ' (zľava)',
-                                                                        'price'       =>    $discount_price,
-                                                                        'unitPrice'   =>    $discount_unitprice,
-                                                                        'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
-                                                                        'vatRate'     =>    $sadzba_DPH);
-                                                  
-                                                // Počítaj ceny do medzisúčtu (pôvodná - zľava)
-                                                $medzisucet += $price + $discount_price;
-                                                $zlava_pritomna = true;
+                                                // nulové zľavy (0,00) sú zbytočné riadky - na doklad ich nedávame
+                                                if (abs($discount_price) >= 0.01) {
+                                                        // riadok so zľavou nezačína značkou "> ", ale textom "ZĽAVA"
+                                                        $items [] =   array (   'type'        =>    'Discount',
+                                                                                'name'        =>    'ZĽAVA ' . $zlava_percent . '% - ' . $model_ocisteny,
+                                                                                'description' =>    $description . ' (zľava)',
+                                                                                'price'       =>    $discount_price,
+                                                                                'unitPrice'   =>    $discount_unitprice,
+                                                                                'quantity'    =>    array ("amount" => abs($quantity), "unit" => $mnozstevna_jednotka),
+                                                                                'vatRate'     =>    $sadzba_DPH);
+                                                          
+                                                        // Počítaj cenu zľavy do medzisúčtu
+                                                        $medzisucet       += $discount_price;
+                                                        $celkova_usporena += abs($discount_price);
+                                                        $zlava_pritomna    = true;
+                                                }
                                         }
                                         else if ($type == "Returned") {
                                                 $items [] =   array (   'type'        =>    $type,
@@ -196,32 +203,18 @@
                       	     }
         }
        
-       // Vypočítanie celkovej ušetrenom sumy ak bola aplikovaná zľava
+       // Celková ušetrená suma sa sčítava priamo pri tvorbe zľavových riadkov
        $medzisucet = round($medzisucet, 2);
-       $celkova_usporena = 0;
-       if ($zlava_pritomna && $zlava_percent > 0) {
-          foreach ($items as $item) {
-              if ($item['type'] === 'Discount' && strpos($item['name'], 'ZLAVA') !== false) {
-                  $celkova_usporena += abs($item['price']);
-              }
-          }
-       }
-       
        $celkova_usporena = round($celkova_usporena, 2);
        $zlava_zaklad = round($zlava_zaklad, 2);
        // suma poskytnutej zľavy (používa sa pri zápise do objednávky a do histórie)
        $zlava_m = $celkova_usporena;
        
-       // Pridanie informatívneho textu o ušetrenej sume na koniec dokladu
+       // Informatívny text o ušetrenej sume sa netlačí medzi položky,
+       // ale ako nefiškálny text v pätičke dokladu (ekasa_priprav_data.php)
+       $info_text = '';
        if ($celkova_usporena > 0) {
-          $info_text = sprintf("Celkovo ste ušetrili: %.2f EUR", $celkova_usporena);
-          $items [] = array (   'type'        =>    'Discount',
-                              'name'        =>    '> INFO: ' . $info_text,
-                              'description' =>    'Informačný riadok o ušetrenej sume',
-                              'price'       =>    0,
-                              'unitPrice'   =>    0,
-                              'quantity'    =>    array ("amount" => 1, "unit" => 'x'),
-                              'vatRate'     =>    0);
+          $info_text = sprintf("Celkovo ste usetrili: %.2f EUR", $celkova_usporena);
        }
 
 
@@ -249,17 +242,21 @@
                                    $discount_amount = $cena * ($zlava_percent / 100);
                                    $discount_price  = round(-abs($discount_amount * $pocet), 2);
                                    
-                                   $items [] =   array (   'type'        =>    'Discount',
-                                                           'name'        =>    $name . ' - ZLAVA ' . $zlava_percent . '%',
-                                                           'price'       =>    $discount_price,
-                                                           'unitPrice'   =>    round(-abs($discount_amount), 6),
-                                                           'quantity'    =>    array ("amount" => $pocet, "unit" => 'x'),
-                                                           'vatRate'     =>    10,
-                                                       );
-                                   $medzisucet       = round($medzisucet + $discount_price, 2);
-                                   $zlava_pritomna   = true;
-                                   $celkova_usporena = abs($discount_price);
-                                   $zlava_m          = $celkova_usporena;
+                                   // nulovú zľavu (0,00) na doklad neuvádzame
+                                   if (abs($discount_price) >= 0.01) {
+                                           $items [] =   array (   'type'        =>    'Discount',
+                                                                   'name'        =>    'ZĽAVA ' . $zlava_percent . '% - ' . $name,
+                                                                   'price'       =>    $discount_price,
+                                                                   'unitPrice'   =>    round(-abs($discount_amount), 6),
+                                                                   'quantity'    =>    array ("amount" => $pocet, "unit" => 'x'),
+                                                                   'vatRate'     =>    10,
+                                                               );
+                                           $medzisucet       = round($medzisucet + $discount_price, 2);
+                                           $zlava_pritomna   = true;
+                                           $celkova_usporena = abs($discount_price);
+                                           $zlava_m          = $celkova_usporena;
+                                           $info_text        = sprintf("Celkovo ste usetrili: %.2f EUR", $celkova_usporena);
+                                   }
                            }
                            $poznamkaInterna = $name; 
                    }  
