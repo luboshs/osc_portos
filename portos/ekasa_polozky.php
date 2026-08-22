@@ -76,7 +76,7 @@
                                         $name           = '> ' . ocisti($products_model);
                                          
                                         // Kontrola či položka obsahuje [KC] - ak áno, nebude sa na ňu aplikovať zľava
-                                        $contains_kc = (strpos($order->products[$i]['model'], 'KC') !== false) || (strpos($order->products[$i]['name'], 'KC') !== false);
+                                        $contains_kc = (stripos($order->products[$i]['model'], '[kc]') !== false) || (stripos($order->products[$i]['name'], '[kc]') !== false);
                                          
                                         // description - nelimitovaný popis položky
                                         $nazov = str_replace('"','',$order->products[$i]['name']);          
