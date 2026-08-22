@@ -8,7 +8,7 @@
 <table>
 <?php 
     
-    //  toto krásne vypíše POST premenné
+    //  toto krÃ¡sne vypÃ­Å¡e POST premennÃ©
     foreach ($_POST as $key => $value) {
         echo "<tr>";
         echo "<td>";

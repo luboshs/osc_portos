@@ -1,17 +1,35 @@
+// Pokladnik moze zadat sumu s desatinnou ciarkou - vzdy ju prepiseme na bodku
+function naCislo (hodnota) {
+              if (hodnota === null || hodnota === undefined) {return 0;}
+              var text = String(hodnota).replace(/\s/g, "").replace(/,/g, ".");
+              var cislo = Number(text);
+              if (isNaN(cislo)) {return 0;}
+              return cislo;
+}
+
+// prepise ciarku na bodku priamo v policku formulara a vrati cislo
+function cisloZPolicka (policko) {
+              if (!policko) {return 0;}
+              var cislo = naCislo(policko.value);
+              policko.value = cislo;
+              return cislo;
+}
+
 function platbaKartou () {
-              var celaSuma = Number(suma.value);
+              var celaSuma = naCislo(suma.value);
               console.log(celaSuma);
-              var zlava_sum = zlava_suma.value;
+              var zlava_sum = naCislo(zlava_suma.value);
               console.log(zlava_sum);
               var medzisucet_zlava = (Math.round((celaSuma - zlava_sum)*100))/100;
               console.log(medzisucet_zlava);
-              var kartou = prompt("Aká suma bola zaplatená terminálom?",medzisucet_zlava);
-              kartou = kartou.replace(",",".");
+              var kartou = prompt("AkÃ¡ suma bola zaplatenÃ¡ terminÃ¡lom?",medzisucet_zlava);
+              if (kartou === null) {return;}
+              kartou = naCislo(kartou);
               var ma_dat = (Math.round((celaSuma - zlava_sum - kartou)*100))/100;
               var zaokruhli = zaokruhlit(ma_dat);
               zaokruhlenie.value = zaokruhli;
               var hotovost_prepocet = (Math.round((ma_dat + zaokruhli)*100))/100;
-              if (0 > ma_dat) {alert("CHYBA - Pri platbe kartou sa nevydáva. Zadajte znova správnu sumu!");}
+              if (0 > ma_dat) {alert("CHYBA - Pri platbe kartou sa nevydÃ¡va. Zadajte znova sprÃ¡vnu sumu!");}
               else {
                   karta.value = kartou;
                   vydavok.value = 'NIE'; 
@@ -25,51 +43,51 @@ function platbaKartou () {
 }
         
 function OtvorZasuvku() {
-                  // neotestované
+                  // neotestovanÃ©
                   const Url = "http://localhost:3010/api/v1/printers/open_drawer";
                   const Data = {method: "POST"};
                   const response = fetch(Url,Data)
                         .then(responses => responses.json())
                         .then(json => console.log(json));
-                  // asi bez odpovedí 
+                  // asi bez odpovedÃ­ 
                   }
 
 function PredajCasopis() {
-                  var name = prompt ("Názov položky","Casopis Zeleznicni magazin");
-                  var pocet = prompt ("Zadaj Množstvo?","1");
+                  var name = prompt ("NÃ¡zov poloÅ¾ky","Casopis Zeleznicni magazin");
+                  var pocet = prompt ("Zadaj MnoÅ¾stvo?","1");
                   var cena = prompt ("Zadaj cenu za kus","8");
-                  var privesok = "akcia=PredajCasopis&description=CASOPIS&pocet=" + pocet + "&cena=" + cena + "&name=" + name;                     
+                  var privesok = "akcia=PredajCasopis&description=CASOPIS&pocet=" + encodeURIComponent(pocet) + "&cena=" + encodeURIComponent(cena) + "&name=" + encodeURIComponent(name);                     
                   var link = "kasa_okno_portos.php?" + privesok; 
                   window.open(link, '_blank', 'toolbar=no,scrollbars=yes,resizable=yes,top=500,left=500,width=500,height=400'); 
                   }
 
 
 function zmenaHotovosti () {             
-              var celaSuma = Number(suma.value);
-              var zlava_sum = zlava_suma.value;
+              var celaSuma = naCislo(suma.value);
+              var zlava_sum = naCislo(zlava_suma.value);
               var medzisucet_zlava = celaSuma - zlava_sum;
-              var v_hotovost = hotovost.value.replace(",",".");
-              var kartou = Number (karta.value);
-              v_hotovost = Number(v_hotovost);
+              var v_hotovost = naCislo(hotovost.value);
+              var kartou = naCislo(karta.value);
               var platba = v_hotovost + kartou;
-              var zaokruhli = Number (zaokruhlenie.value);                  
+              var zaokruhli = naCislo(zaokruhlenie.value);                  
               var vydaj =  platba - medzisucet_zlava - zaokruhli;
               vydaj = ((Math.round(vydaj * 100)) / 100);
               
               if (vydaj > 0) {vydavok.value = vydaj;} 
-              else if (vydaj < 0) {vydavok.value = 'MÁLO';}
+              else if (vydaj < 0) {vydavok.value = 'MÃLO';}
               else {vydavok.value = 'NIE';}     
               zaokruhlenie.value = zaokruhli;       
 }
                                                             
 
 function faktura() {
-            alert ('Upozornenie!\n\nTúto funkciu používaj iba na faktúry ktoré nevieš uhradi priamo z objednávky!','Upozornenie!');
+            alert ('Upozornenie!\n\nTÃºto funkciu pouÅ¾Ã­vaj iba na faktÃºry ktorÃ© nevieÅ¡ uhradiÅ¥ priamo z objednÃ¡vky!','Upozornenie!');
             var suma_0 = prompt ('Zadaj sumu','EUR');
-            var suma = 0;
-            suma = suma_0.replace(",",".");
-            var faktura = prompt ("Zadaj èíslo faktúry","Cislo faktury");
-            var link = 'https://shop.modelovazeleznica.sk/admin/kasa_okno_portos.php?akcia=FAKTURA&zdroj=manual&suma=' + suma + '&cislo_faktury=' +faktura;
+            if (suma_0 === null) {return;}
+            var suma = naCislo(suma_0);
+            var faktura = prompt ("Zadaj ÄÃ­slo faktÃºry","Cislo faktury");
+            if (faktura === null) {return;}
+            var link = 'https://shop.modelovazeleznica.sk/admin/kasa_okno_portos.php?akcia=FAKTURA&zdroj=manual&suma=' + encodeURIComponent(suma) + '&cislo_faktury=' + encodeURIComponent(faktura);
             window.open(link, '_blank', 'toolbar=no,scrollbars=yes,resizable=yes,top=500,left=500,width=500,height=400'); 
             
 }
@@ -77,24 +95,24 @@ function faktura() {
 
 
 function generujBlocek (naEmail) {
-                            var premenna_karta = Number(karta.value);
-                            var premenna_hotovost_ma_dat = Number(hotovost_ma_dat.value);
-                            var premenna_hotovost = Number(hotovost.value);
+                            var premenna_karta = cisloZPolicka(karta);
+                            var premenna_hotovost_ma_dat = cisloZPolicka(hotovost_ma_dat);
+                            var premenna_hotovost = cisloZPolicka(hotovost);
                             //var premenna_vydavok = vydavok.value;
                             if (vydavok.value == "NIE") {var premenna_vydavok =0;}
-                            else {var premenna_vydavok = Number(vydavok.value);}
+                            else {var premenna_vydavok = naCislo(vydavok.value);}
                             
-                            var premenna_zaokruhlenie = Number(zaokruhlenie.value);
+                            var premenna_zaokruhlenie = cisloZPolicka(zaokruhlenie);
                             
                             var platba = premenna_karta + premenna_hotovost - premenna_vydavok;
                             platba = (Math.round((platba)*100))/100;
-                            var celaSuma = Number(suma.value);
-                            var zlava_sum = zlava_suma.value;
+                            var celaSuma = naCislo(suma.value);
+                            var zlava_sum = naCislo(zlava_suma.value);
                             var medzisucet_zlava = (Math.round((celaSuma - zlava_sum)*100))/100;
                             var premenna_ma_dat = medzisucet_zlava + premenna_zaokruhlenie;
                             premenna_ma_dat = (Math.round((premenna_ma_dat)*100))/100;
 
-                            console.log("ma dat (hotovos)= " + premenna_hotovost_ma_dat);
+                            console.log("ma dat (hotovosÅ¥)= " + premenna_hotovost_ma_dat);
                             console.log("=============================");
                             console.log("karta = " + premenna_karta);
                             console.log("hotovost = " + premenna_hotovost);
@@ -126,7 +144,7 @@ function generujBlocek (naEmail) {
                          document.getElementById('zapis').submit();
 
                        } else {
-                            alert ('Chyba - suma platieb musí by zhodná so sumou bloèka. Skontrolujte èi ste zadali správnu sumu pre platbu kartou!');
+                            alert ('Chyba - suma platieb musÃ­ byÅ¥ zhodnÃ¡ so sumou bloÄka. Skontrolujte Äi ste zadali sprÃ¡vnu sumu pre platbu kartou!');
                        }
 
 
@@ -136,14 +154,14 @@ function generujBlocek (naEmail) {
 
 function kontrola_storna() {
                cakaj.style = "display:none;";
-               var kontrola = confirm ("Prosím poèkajte chví¾u a potvïte OK ak bol stiahnutý súbor a vytlaèený bloèek.\n\nAk bloèek vytlaèený nebol stlaète ZRUŠI.");
+               var kontrola = confirm ("ProsÃ­m poÄkajte chvÃ­Ä¾u a potvÄte OK ak bol stiahnutÃ½ sÃºbor a vytlaÄenÃ½ bloÄek.\n\nAk bloÄek vytlaÄenÃ½ nebol stlaÄte ZRUÅ IÅ¤.");
                
                if (kontrola) {
                           akcia.value = 'zapis';
                           zapis.submit();
                
                } else {
-                          alert ('Uviedli ste, že bloèek sa nestiahol a nevytlaèil. \n Nebol vykonaný záznam o bloèku. Zavrite toto okno.');
+                          alert ('Uviedli ste, Å¾e bloÄek sa nestiahol a nevytlaÄil. \n Nebol vykonanÃ½ zÃ¡znam o bloÄku. Zavrite toto okno.');
                           
                }
                 
@@ -154,9 +172,9 @@ function kontrola_storna() {
 
 
 function stiahni(oID) {
-        var v_hotovosti = hotovost.value.replace(',','.');
-        var kartou = karta.value.replace(',','.');
-        var kontrola = confirm ('Naozaj chceš vygenerova bloèek?');
+        var v_hotovosti = cisloZPolicka(hotovost);
+        var kartou = cisloZPolicka(karta);
+        var kontrola = confirm ('Naozaj chceÅ¡ vygenerovaÅ¥ bloÄek?');
         
         if (kontrola) {
                 $.ajax({
@@ -181,8 +199,8 @@ function stiahni(oID) {
         txt.click();
                        
                 
-        var vymazat = confirm ('\n\nBol bloèek vytlaèený?\n\nPokia¾ kliknete OK uloží sa záznam do databázy. Pokia¾ klinete Zruši, skript sa pokúsi bloèek stiahnu ešte raz.');             
-        if (vymazat) {  alert ('Dokonèi skript na vymazanie.');
+        var vymazat = confirm ('\n\nBol bloÄek vytlaÄenÃ½?\n\nPokiaÄ¾ kliknete OK uloÅ¾Ã­ sa zÃ¡znam do databÃ¡zy. PokiaÄ¾ klinete ZruÅ¡iÅ¥, skript sa pokÃºsi bloÄek stiahnuÅ¥ eÅ¡te raz.');             
+        if (vymazat) {  alert ('DokonÄiÅ¥ skript na vymazanie.');
         } else {txt.click();}
         
         document.body.removeChild(txt); 
@@ -195,11 +213,11 @@ function stiahni(oID) {
 
 function dajZlavu(zlava_0) {
      
-     var zlava = prompt ("Akú percentuálnu chcete prida?\n(možno zada iba hodnoty 0, 3, 5, 7 a 10)",zlava_0);
+     var zlava = prompt ("AkÃº percentuÃ¡lnu chcete pridaÅ¥?\n(moÅ¾no zadaÅ¥ iba hodnoty 0, 3, 5, 7 a 10)",zlava_0);
    
        if ((zlava == 0)|(zlava == 3)|(zlava==5)|(zlava==7)|(zlava==10)) {
                            
-                          var celkom = suma.value;
+                          var celkom = naCislo(suma.value);
                           var zlava_sum = 0.01;
                           
                           zlava_sum = celkom * zlava;
@@ -223,14 +241,14 @@ function dajZlavu(zlava_0) {
                             
                            
                        } 
-       else           {alert ("Nesprávna hodnota!\nMožno zada iba z¾avu v urèitej hodnote %.");}
+       else           {alert ("NesprÃ¡vna hodnota!\nMoÅ¾no zadaÅ¥ iba zÄ¾avu v urÄitej hodnote %.");}
 }   
 
 
 function zaokruhlit (vstup) {
 
            
-              var cifra_cela = Number(vstup);
+              var cifra_cela = naCislo(vstup);
               var cifra_string = cifra_cela.toFixed(2);
               var cifra = Number(cifra_string.slice(-1));
               var zaokruhli = 0;
@@ -284,7 +302,7 @@ function showHide(shID) {
 }
 
 
-// Funkcia na uloženie cookies
+// Funkcia na uloÅ¾enie cookies
 function setCookie(name, value, days) {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -292,7 +310,7 @@ function setCookie(name, value, days) {
     document.cookie = name + "=" + value + ";" + expires + ";path=/";
 }
 
-// Funkcia na získanie cookies
+// Funkcia na zÃ­skanie cookies
 function getCookie(name) {
     const cookies = document.cookie.split("; ");
     for (let i = 0; i < cookies.length; i++) {
@@ -304,7 +322,7 @@ function getCookie(name) {
     return null;
 }
 
-// Funkcia na validáciu IP adresy (IPv4)
+// Funkcia na validÃ¡ciu IP adresy (IPv4)
 function isValidIP(ip) {
     const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
     return ipRegex.test(ip);
@@ -314,22 +332,22 @@ function isValidIP(ip) {
 function handleIPAddress() {
     const currentIP = getCookie("ip_address");
     const promptText = currentIP ?
-        `Aktuálna IP adresa: ${currentIP}. IP adresu zistíš napr. na webe https://whatismyipaddress.com/. Zadajte novú IP adresu:` :
-        "IP adresu zistíš napr. na webe https://whatismyipaddress.com/. Zadajte IP adresu:";
+        `AktuÃ¡lna IP adresa: ${currentIP}. IP adresu zistÃ­Å¡ napr. na webe https://whatismyipaddress.com/. Zadajte novÃº IP adresu:` :
+        "IP adresu zistÃ­Å¡ napr. na webe https://whatismyipaddress.com/. Zadajte IP adresu:";
     const ip = prompt(promptText);
 
     if (ip && isValidIP(ip)) {
-        setCookie("ip_address", ip, 999); // Uloží IP na 999 dní
+        setCookie("ip_address", ip, 999); // UloÅ¾Ã­ IP na 999 dnÃ­
         const infoElement = document.getElementById("ip-info");
         if (infoElement) {
-            infoElement.innerText = `IP adresa uložená: ${ip}`;
+            infoElement.innerText = `IP adresa uloÅ¾enÃ¡: ${ip}`;
         }
     } else if (ip) {
-        alert("Neplatná IP adresa! Skúste znova.");
+        alert("NeplatnÃ¡ IP adresa! SkÃºste znova.");
     }
 }
 
-// Funkcia na zobrazenie aktuálnej IP adresy
+// Funkcia na zobrazenie aktuÃ¡lnej IP adresy
 function displaySavedIP() {
     const savedIP = getCookie("ip_address");
     const infoElement = document.getElementById("ip-info");

@@ -33,7 +33,7 @@
   <!DOCTYPE html>
         <html>
               <head>
-                  <meta http-equiv="Content-Type" content="text/html; charset=utf8">
+                  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                   <title><?php echo APP_NAME.' '.APP_VERSION;?></title>
                   <script language="javascript" src="portos/jquery-2.2.4.min.js"></script>
                   <script language="javascript" src="portos/ekasa_mincovka.js"></script>

@@ -1,17 +1,17 @@
 <?php
 //  ****************************************************************   
-//  ******* príprava dát pre skript ********************************   
+//  ******* prÃ­prava dÃ¡t pre skript ********************************   
 //  ****************************************************************       
-//  ** premenná pre položky je už definovaná z e_kasa_polozky.php **
+//  ** premennÃ¡ pre poloÅ¾ky je uÅ¾ definovanÃ¡ z e_kasa_polozky.php **
 //  ****************************************************************
 //  ****** verzia 1.00 31.01.2020 **********************************
 //  ****************************************************************
-//  úlohy:
-//  - nie je dorobená funkcionalita bloèku na email (na okne)
+//  Ãºlohy:
+//  - nie je dorobenÃ¡ funkcionalita bloÄku na email (na okne)
    
-        // deklarácia premenných z eshopu 
+        // deklarÃ¡cia premennÃ½ch z eshopu 
                     $zakaznik_meno  =   ocisti($order->customer['name']);
-                    // email, ak bude prázdny tak sa doklad vytlaèí cez POS, ak bude email definovaný tak pošleme doklad na email
+                    // email, ak bude prÃ¡zdny tak sa doklad vytlaÄÃ­ cez POS, ak bude email definovanÃ½ tak poÅ¡leme doklad na email
                     if (isset($_POST["email"]) AND (strlen($_POST["email"])>6)) {
                                 //$email = $_POST["email"];
                                 $print_array = array ('printerName'   =>'email',
@@ -20,7 +20,7 @@
                                                                                                                 'Subject' => EMAIL_PREDMET,
                                                                                                                 'Body' => EMAIL_TEXT
                                                                 ));
-                                $email_log = "\n\n".'Doklad zaslaný na email: '. $_POST["email"];
+                                $email_log = "\n\n".'Doklad zaslanÃ½ na email: '. $_POST["email"];
                                 $doklad_na_email = true;
                     } else {
                                $print_array =  array ('printerName'=>'pos',

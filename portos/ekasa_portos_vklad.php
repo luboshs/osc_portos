@@ -1,17 +1,17 @@
 <?php
-     // naËÌtanie z·kladn˝ch funkciÌ eshopu
+     // naƒç√≠tanie z√°kladn√Ωch funkci√≠ eshopu
         require('../includes/application_top.php');
         include(DIR_WS_CLASSES . 'order.php');
         $oID = tep_db_prepare_input($HTTP_GET_VARS['oID']);
         if (isset($_POST["oID"])) {$oID = tep_db_prepare_input($HTTP_POST_VARS['oID']);}
         $order = new order($oID);
-     // naËÌtanie nastavenÌ a funkciÌ ekasa
+     // naƒç√≠tanie nastaven√≠ a funkci√≠ ekasa
         include ('../portos/ekasa_portos_nastavenia.php');
         include ('../portos/ekasa_portos.php');
     
         // echo IP.'***<br />';
               
-     // zistenie POST / GET d·t
+     // zistenie POST / GET d√°t
         if (isset($_GET["faktura"])) {$faktura=true;} else {$faktura=false;}
         $akcia = (isset($HTTP_GET_VARS['akcia']) ? $HTTP_GET_VARS['akcia'] : $HTTP_POST_VARS['akcia']);
 
@@ -28,7 +28,7 @@
                     if (isset($_POST["hotovost_ma_dat"])) {$hotovost=$_POST["hotovost_ma_dat"];} else {$hotovost=0;}
                     $platba_kartou  =   $_POST["karta"];  
                     if (isset($_POST["karta"])) {$platba_kartou=$_POST["karta"];} else {$platba_kartou=0;}
-               //   prÌprava premenn˝ch pre doklad     
+               //   pr√≠prava premenn√Ωch pre doklad     
                     include ('portos/ekasa_priprav_data.php'); 
             // ========>
             // ========>
@@ -36,7 +36,7 @@
                     
                     echo '<br /><br />';
                     /*
-                // z·pis bloËka do tabuæky    - ch˝ba koniec bloËka
+                // z√°pis bloƒçka do tabuƒæky    - ch√Ωba koniec bloƒçka
                    $hotovost_sql = str_replace (',','.',$_POST["hotovost_ma_dat"]);
                    $hotovost_sql = number_format($hotovost_sql,2,'.',''); 
                                                                                                         
@@ -72,16 +72,16 @@
                     */
       
       
-                                // poradovÈ ËÌslo dokladu
+                                // poradov√© ƒç√≠slo dokladu
                                $receipt_number = $response['request']['data']['receiptNumber'];
                                $okp = $response['request']['data']['okp'];
-                               // celÈ pole s obsahom doklada a d·tami
+                               // cel√© pole s obsahom doklada a d√°tami
                                $receipt_data = $response['request']['data'];
-                               // ˙daje z ekasa serveru
+                               // √∫daje z ekasa serveru
                                $UID = $response['response']['data']['id'];
                                $processDate = $response['response']['processDate'];
                                $isSuccessful = $response['isSuccessful'];
-                               // z·znamy o chyb·ch zo systÈmu ekasa
+                               // z√°znamy o chyb√°ch zo syst√©mu ekasa
                                $error_code =  $response['error']['code'];
                                $error_message =  $response['error']['message'];
                               
@@ -127,28 +127,28 @@
                        $blocekID = mysql_insert_id();
                        $sql_order = tep_db_query("update orders set orders_status = 2, last_modified = now(), blocek = '" . (int)$blocekID . "' where orders_id = '" . (int)$oID . "'");
     
-                       $komentar = "ekasa / Portos - objedn·vka uzavret· a vy˙Ëtovan· pokladniËn˝m bloËkom v celkovej sume ".$medzisucet." Ä"."\n\nPlatidl·:\nHotovosù = ".$hotovost_sql."\nKarta= ".$karta_sql."\nID bloËka = ".(int)$blocekID;
+                       $komentar = "ekasa / Portos - objedn√°vka uzavret√° a vy√∫ƒçtovan√° pokladniƒçn√Ωm bloƒçkom v celkovej sume ".$medzisucet." ‚Ç¨"."\n\nPlatidl√°:\nHotovos≈• = ".$hotovost_sql."\nKarta= ".$karta_sql."\nID bloƒçka = ".(int)$blocekID;
                        $sql_history = tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 1, '" . tep_db_input($komentar) . "', '" . tep_db_input($myAccount['admin_name'])  . "')");
                 */
                 
                 $sql = true;
                   
                   if ($sql) {
-                                echo '<br /><br />Z·znam bol uloûen˝ do datab·zy, mÙûete zavrieù okno.<br /><br />';
+                                echo '<br /><br />Z√°znam bol ulo≈æen√Ω do datab√°zy, m√¥≈æete zavrie≈• okno.<br /><br />';
                                                     echo '<table>';
 
                                                     echo '<tr>';
-                                                    echo '<td>Suma n·kupu:</td>';
+                                                    echo '<td>Suma n√°kupu:</td>';
                                                     echo '<td>';
                                                     echo '<input type="text" name="suma" id="suma" value="'.$medzisucet.'"  readonly disabled style="font-size: 25pt" size="8">';
                                                     echo '</td>';
                                                     echo '<td>';
-                                                    echo 'Ä';
+                                                    echo '‚Ç¨';
                                                     echo '</td>';
                                                     echo '</tr>';
                                                 
                                                     echo '<tr>';
-                                                    echo '<td>Zæava:</td>';
+                                                    echo '<td>Zƒæava:</td>';
                                                     echo '<td>';
                                                     echo '<input type="text" name="zlava_p" id="zlava_p" value="'.$_POST["zlava_p"].'" readonly disabled style="font-size: 20pt" size="2">';
                                                     echo '<input type="text" name="zlava_suma" id="zlava_suma" value="'.$_POST["zlava_suma"].'" readonly disabled style="font-size: 20pt" size="3">';
@@ -168,7 +168,7 @@
                                                     echo '</tr>';         
                                                     
                                                     echo '<tr>';
-                                                    echo '<td>HOTOVOSç:</td>';
+                                                    echo '<td>HOTOVOS≈§:</td>';
                                                     echo '<td>';
                                                     
                                                     echo '<input type="text" name="hotovost" value="'.$_POST["hotovost"].'" readonly disabled style="font-size: 25pt" size="8" >';
@@ -179,7 +179,7 @@
                                                     echo '</tr>';      
                                                    
                                                     echo '<tr>';
-                                                    echo '<td>V˝davok:</td>';
+                                                    echo '<td>V√Ωdavok:</td>';
                                                     echo '<td>';
                                                     echo '<input type="text" name="suma" readonly disabled value="'.$_POST["vydavok"].'"  style="font-size: 25pt" size="8">';
                                                     echo '</td>';
@@ -191,17 +191,17 @@
                                         </script>
                                    <?php                                              
                                 }
-                        else {echo '<br /><br />Nezn·ma chyba, kontaktujte spr·vcu.';}
+                        else {echo '<br /><br />Nezn√°ma chyba, kontaktujte spr√°vcu.';}
                     break;
     
       
                 default:
         
-        //     <meta http-equiv="Content-Type" content="text/html; charset=cp-1250">
+        //     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         ?><!DOCTYPE html>
         <html>
               <head>
-                  <meta http-equiv="Content-Type" content="text/html; charset=cp-1250">
+                  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                   <title>E-KASA pre PORTOS 1.0</title>
                   <script language="javascript" src="portos/jquery-2.2.4.min.js"></script>
                   <script language="javascript" src="portos/ekasa_skripty.js"></script>
@@ -217,7 +217,7 @@
         switch ($akcia) { 
                 
                 case 'faktura':
-                    echo '˙hrada fakt˙ry';
+                    echo '√∫hrada fakt√∫ry';
                 break;  
                     
                 default:
@@ -234,33 +234,33 @@
                         echo '<td>Klient:</td>';
                         echo '<td>';
                         echo '<input type="text" name="klient" id="klient" value="'.$order->customer['name'].'"  readonly disabled style="font-size: 12pt" size="30">';
-                        if ($order->customer['zlava']>0) {echo '<b><font color="red">Klient m· nastaven˙ zæavu '.$order->customer['zlava'].'%</font></b>';}
+                        if ($order->customer['zlava']>0) {echo '<b><font color="red">Klient m√° nastaven√∫ zƒæavu '.$order->customer['zlava'].'%</font></b>';}
                         echo '</td>';
                         echo '<td>';
                         if ( $cID > 0)   {
-                                    echo '<button type="button"  onclick="window.open('."'".FILENAME_ORDERS.'?cID='.$cID."'".', '."'".'_blank'."'".' );" class="button_karta">HIST”RIA KLIENTA</button>';
+                                    echo '<button type="button"  onclick="window.open('."'".FILENAME_ORDERS.'?cID='.$cID."'".', '."'".'_blank'."'".' );" class="button_karta">HIST√ìRIA KLIENTA</button>';
                                 }
                         echo '</td>';      
                         echo '</tr>';
                                                  
                         echo '<tr>';
-                        echo '<td>Suma n·kupu:</td>';
+                        echo '<td>Suma n√°kupu:</td>';
                         echo '<td>';
                         echo '<input type="text" name="suma" id="suma" value="'.$medzisucet.'"  readonly disabled style="font-size: 20pt" size="10">';
                         echo '</td>';
                         echo '<td>';
-                        echo '<button type="button" onclick="window.open('."'http://localhost:3010/api/v1/printers/open_drawer', '_blank'".');" class="button_karta">OTVOR Z¡SUVKU</button>';
+                        echo '<button type="button" onclick="window.open('."'http://localhost:3010/api/v1/printers/open_drawer', '_blank'".');" class="button_karta">OTVOR Z√ÅSUVKU</button>';
                         echo '</td>';      
                         echo '</tr>';
 
                         echo '<tr>';
-                        echo '<td>Zæava:</td>';
+                        echo '<td>Zƒæava:</td>';
                         echo '<td>';
                         echo '<input type="text" name="zlava_p" id="zlava_p" value="0%" readonly style="font-size: 20pt" size="2"> ' ;
                         echo '&nbsp <input type="text" name="zlava_suma" id="zlava_suma" value="0.00" readonly style="font-size: 20pt" size="3">';
                         echo '</td>';
                         echo '<td>';
-                        echo '<button type="button" onclick="dajZlavu();" class="button_karta">ZADAJ ZºAVU</button>';
+                        echo '<button type="button" onclick="dajZlavu();" class="button_karta">ZADAJ ZƒΩAVU</button>';
                         echo '</td>';
                         echo '</tr>';
 
@@ -269,7 +269,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<br />Pre pokraËovanie sa sp˝taj klienta na spÙsob platby a klikni niûöie:<br /><br />';
+                        echo '<br />Pre pokraƒçovanie sa sp√Ωtaj klienta na sp√¥sob platby a klikni ni≈æ≈°ie:<br /><br />';
                         echo '</td>';
                         echo '<td>';
                         echo '';
@@ -281,12 +281,12 @@
                         echo '';
                         echo '</td>';
                         echo '<td>';
-                        echo '<button type="button" onclick="location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOSç</button> &nbsp';
+                        echo '<button type="button" onclick="location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS≈§</button> &nbsp';
                         echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button>';
                         echo '</td>';
                         echo '<td>';                                                                                                        
-            //          echo '<button type="button" onclick="window.close();" class="button_zrusit">ZAVRIEç OKNO</button>';
-            //          echo '<button type="button" onclick='.'"javascript:var win = window.open'."('', '_self')".';win.close();return false;"'.' class="button_zrusit">ZAVRIEç OKNO</button>';
+            //          echo '<button type="button" onclick="window.close();" class="button_zrusit">ZAVRIE≈§ OKNO</button>';
+            //          echo '<button type="button" onclick='.'"javascript:var win = window.open'."('', '_self')".';win.close();return false;"'.' class="button_zrusit">ZAVRIE≈§ OKNO</button>';
                         echo '</td>';
                         echo '</tr>';
                         
@@ -302,7 +302,7 @@
                         echo '<input type="text" name="karta" value="0"  id="karta" style="font-size: 25pt" size="8">';
                         echo '</td>';
                         echo '<td>';
-                        echo '<button type="button" name="karta_button" id="karta_button" onclick="platbaKartou(); zmenaHotovosti(); document.getElementById('."'hotovost'".').focus();" class="button_karta">UPRAVIç PLATBU KARTOU</button>';
+                        echo '<button type="button" name="karta_button" id="karta_button" onclick="platbaKartou(); zmenaHotovosti(); document.getElementById('."'hotovost'".').focus();" class="button_karta">UPRAVI≈§ PLATBU KARTOU</button>';
                         
                         echo '</td>';
                         echo '</tr>';         
@@ -310,40 +310,40 @@
            
                      
                         echo '<tr id="HotovostTR">';
-                        echo '<td>HOTOVOSç:</td>';
+                        echo '<td>HOTOVOS≈§:</td>';
                         echo '<td>';
                         echo '<input type="text" name="hotovost" value="'.$medzisucet.'" style="font-size: 25pt" size="8" tabindex=1 id = "hotovost" onfocus="this.select();" oninput= "zmenaHotovosti();">';
                         echo '</td>';
                         echo '<td>';
-         // =====> doplniù funkcie    
-         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLA»Iç BLO»EK</button>';
+         // =====> doplni≈• funkcie    
+         //              echo '<button type="button" onclick="alert(455555555);" class="button_blocek">VYTLAƒåI≈§ BLOƒåEK</button>';
                         echo '</td>';
                         echo '</tr>';      
           
           
                      
                         echo '<tr id="VydavokTR">';
-                        echo '<td>V˝davok:</td>';
+                        echo '<td>V√Ωdavok:</td>';
                         echo '<td>';
                         echo '<input type="text" name="vydavok" value="NIE" readonly id="vydavok" style="font-size: 25pt" size="8">';
                         echo '</td>';
                         echo '<td>';
-                   //     echo '<button type="button" onclick="location.hash = '."'#prvy_riadok'".';" class="button_zrusit">NA<br />ZA»IATOK</button>';
+                   //     echo '<button type="button" onclick="location.hash = '."'#prvy_riadok'".';" class="button_zrusit">NA<br />ZAƒåIATOK</button>';
                         echo '</td>';
                         echo '</tr>';       
            
            
-           /*  dorobiù moûnosù posielaù bloËek na email                                   
+           /*  dorobi≈• mo≈ænos≈• posiela≈• bloƒçek na email                                   
                         $email = $order->customer['email_address'];
                         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                                 echo '<tr id="email_tr">';
                                 echo '<td>Email:</td>';
                                 echo '<td>';
-                                echo 'V objedn·vke je zadan˝ email, <b>sp˝taj sa z·kaznÌka, Ëi chce bloËek vytlaËiù alebo poslaù na email?</b><br />Email je potrebnÈ skontrolovaù. BloËek nie je moûnÈ zaslaù opakovane, ani ho neskÙr vytlaËiù.<br /><br />';
+                                echo 'V objedn√°vke je zadan√Ω email, <b>sp√Ωtaj sa z√°kazn√≠ka, ƒçi chce bloƒçek vytlaƒçi≈• alebo posla≈• na email?</b><br />Email je potrebn√© skontrolova≈•. Bloƒçek nie je mo≈æn√© zasla≈• opakovane, ani ho nesk√¥r vytlaƒçi≈•.<br /><br />';
                                 echo '<input type="text" name="email" value="'.$email.'" style="font-size: 12pt" size="30"  id = "email">';
                                 echo '</td>';
                                 echo '<td>';
-                            //    echo '<button type="button" onclick="generujBlocek('.$oID.');" class="button_blocek">GENERUJ BLO»EK</button>';
+                            //    echo '<button type="button" onclick="generujBlocek('.$oID.');" class="button_blocek">GENERUJ BLOƒåEK</button>';
                                 echo '</td>';
                                 echo '</tr>';                              
                         }          
@@ -355,7 +355,7 @@
                         echo '';
                         echo '</td>';
                         echo '<td><br />';
-                        echo '<button type="button" onclick="generujBlocek();" class="button_blocek">VYTLA» DOKLAD</button> &nbsp';
+                        echo '<button type="button" onclick="generujBlocek();" class="button_blocek">VYTLAƒå DOKLAD</button> &nbsp';
                   //      echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button>';
                         echo '</td>';
                         echo '<td>';                                                                                                        

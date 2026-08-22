@@ -1,13 +1,13 @@
 <?php
 //  *****************************************************************  
-//  ******* tento skript pridá z¾avu medzi položky objednávky********
+//  ******* tento skript pridÃ¡ zÄ¾avu medzi poloÅ¾ky objednÃ¡vky********
 //  *****************************************************************      
-//  * keï je inicializovaný, predpokladá sa že z¾ava je deklarovaná *
+//  * keÄ je inicializovanÃ½, predpokladÃ¡ sa Å¾e zÄ¾ava je deklarovanÃ¡ *
 //  *****************************************************************
 //  ****** verzia 1.00 10.02.2020 ***********************************
 //  *****************************************************************
-//  úlohy:
-//  - nie je dorobená funkcionalita bloèku na email (na okne)
+//  Ãºlohy:
+//  - nie je dorobenÃ¡ funkcionalita bloÄku na email (na okne)
         $price          =   (0 - abs($zlava))/1.2; 
         $final_price    =   $price;                          
         $model = 'ZLAVA '.$_POST["zlava_p"];
