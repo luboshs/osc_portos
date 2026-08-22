@@ -211,20 +211,62 @@ function stiahni(oID) {
 }   
 
 
+// vráti položky, na ktoré je možné dať zľavu (bez položiek s konečnou cenou [KC])
+function zlavovePolozky () {
+              var policko = document.getElementById('zlava_polozky');
+              if (!policko || !policko.value) {return null;}
+              try {
+                    var polozky = JSON.parse(policko.value);
+                    if (!polozky || !polozky.length) {return [];}
+                    return polozky;
+              } catch (e) {
+                    return null;
+              }
+}
+
+// základ pre výpočet zľavy - suma položiek bez [KC], ak nie je známy použije sa celá suma
+function zlavovyZaklad () {
+              var policko = document.getElementById('zlava_zaklad');
+              if (policko && policko.value !== "") {return naCislo(policko.value);}
+              return naCislo(suma.value);
+}
+
+// výpočet zľavy rovnakým spôsobom, ako sa počíta na doklade (po položkách)
+function vypocetZlavy (percento) {
+              var polozky = zlavovePolozky();
+              var zlava_sum = 0;
+              if (polozky === null) {
+                    // nepoznáme rozpis položiek - počítame zo základu
+                    zlava_sum = Math.round(zlavovyZaklad() * percento) / 100;
+              } else {
+                    for (var i = 0; i < polozky.length; i++) {
+                          var jednotkova_cena = naCislo(polozky[i].unitPrice);
+                          var mnozstvo = Math.abs(naCislo(polozky[i].quantity));
+                          var zlava_polozky = jednotkova_cena * (percento / 100);
+                          zlava_sum += Math.round(Math.abs(zlava_polozky * mnozstvo) * 100) / 100;
+                    }
+              }
+              return Math.round(zlava_sum * 100) / 100;
+}
+
 function dajZlavu(zlava_0) {
      
      var zlava = prompt ("Akú percentuálnu zľavu chcete pridať?\n(možno zadať hodnoty od 1 do 15 %)",zlava_0);
+     if (zlava === null) {return;}
    
        zlava = naCislo(zlava);
         
        if (zlava >= 1 && zlava <= 15) {
                            
                           var celkom = naCislo(suma.value);
-                          var zlava_sum = 0.01;
+                          var zaklad = zlavovyZaklad();
                            
-                          zlava_sum = celkom * zlava;
-                          zlava_sum = Math.round(zlava_sum);
-                          zlava_sum = zlava_sum / 100;
+                          if (zaklad <= 0) {
+                                alert ("Zľavu nie je možné poskytnúť!\nV objednávke nie sú položky, na ktoré je možné dať zľavu\n(položky s konečnou cenou [KC] sú zo zliav vylúčené).");
+                                return;
+                          }
+                           
+                          var zlava_sum = vypocetZlavy(zlava);
                            
                           var ma_dat = (Math.round((celkom - zlava_sum)*100))/100;
                            
@@ -241,7 +283,10 @@ function dajZlavu(zlava_0) {
                         var zaokruhli = zaokruhlit(ma_dat);
                         zaokruhlenie.value = zaokruhli;
                              
-                            
+                        if (zaklad < celkom) {
+                              alert ("Zľava " + zlava + "% bola vypočítaná iba zo sumy " + zaklad.toFixed(2) + " €.\nPoložky s konečnou cenou [KC] sú zo zľavy vylúčené.\n\nZľava = " + zlava_sum.toFixed(2) + " €\nSpolu k úhrade = " + ma_dat.toFixed(2) + " €");
+                        }
+                             
                        } 
        else           {alert ("Nesprávna hodnota!\nMožno zadať iba zľavu od 1 do 15 %.");}
 }

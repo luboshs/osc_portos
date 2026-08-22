@@ -17,10 +17,16 @@
        $zlava_pritomna = false;
         
        // Extrahovanie percentuálnej zľavy z POST
+       // povolený rozsah je 1 až 15 %, iné hodnoty sa ignorujú
        $zlava_percent = 0;
        if (isset($_POST["zlava_p"])) {
-           $zlava_percent = (float)str_replace('%', '', trim($_POST["zlava_p"]));
+           $zlava_percent = ekasa_cislo(str_replace('%', '', trim($_POST["zlava_p"])));
        }
+       if ($zlava_percent < 1 OR $zlava_percent > 15) { $zlava_percent = 0; }
+        
+       // položky, na ktoré je možné dať zľavu (bez [KC]) - základ pre výpočet zľavy v GUI
+       $zlava_polozky = array ();
+       $zlava_zaklad = 0;
         
        $items = array ();
        
@@ -113,6 +119,12 @@
                                           
                                         
                             // SPRACOVANIE RIADKU
+                                        // Zber položiek, na ktoré je možné dať zľavu (kladná položka bez [KC])
+                                        if ($type == "Positive" && !$contains_kc) {
+                                                $zlava_polozky [] = array ('unitPrice' => $unitprice, 'quantity' => abs($quantity));
+                                                $zlava_zaklad += $price;
+                                        }
+                                        
                                         // Aplikovanie zľavy na položku (ak nie je KC a ide o kladnú cenu)
                                         if ($type == "Positive" && !$contains_kc && $zlava_percent > 0) {
                                                 $discount_amount = $unitprice * ($zlava_percent / 100);
@@ -185,6 +197,7 @@
         }
        
        // Vypočítanie celkovej ušetrenom sumy ak bola aplikovaná zľava
+       $medzisucet = round($medzisucet, 2);
        $celkova_usporena = 0;
        if ($zlava_pritomna && $zlava_percent > 0) {
           foreach ($items as $item) {
@@ -193,6 +206,11 @@
               }
           }
        }
+       
+       $celkova_usporena = round($celkova_usporena, 2);
+       $zlava_zaklad = round($zlava_zaklad, 2);
+       // suma poskytnutej zľavy (používa sa pri zápise do objednávky a do histórie)
+       $zlava_m = $celkova_usporena;
        
        // Pridanie informatívneho textu o ušetrenej sume na koniec dokladu
        if ($celkova_usporena > 0) {
@@ -212,7 +230,7 @@
                             $pocet = ekasa_cislo($_GET["pocet"]);
                             $cena = ekasa_cislo($_GET["cena"]);
                             $name = $_GET["name"];
-                            $medzisucet = $cena * $pocet;    
+                            $medzisucet = round($cena * $pocet, 2);    
                                            
                                 $items [] =   array (   'type'        =>    'Positive',
                                                         'name'        =>    $name,
@@ -222,6 +240,27 @@
                                                         'quantity'    =>    array ("amount" => $pocet, "unit" => 'x'),
                                                         'vatRate'     =>    10,
                                                     );
+                                                    
+                           // časopis je bežná položka - zľavu je možné dať na celú jeho cenu
+                           $zlava_polozky = array (array ('unitPrice' => $cena, 'quantity' => $pocet));
+                           $zlava_zaklad  = $medzisucet;
+                           
+                           if ($zlava_percent > 0) {
+                                   $discount_amount = $cena * ($zlava_percent / 100);
+                                   $discount_price  = round(-abs($discount_amount * $pocet), 2);
+                                   
+                                   $items [] =   array (   'type'        =>    'Discount',
+                                                           'name'        =>    $name . ' - ZLAVA ' . $zlava_percent . '%',
+                                                           'price'       =>    $discount_price,
+                                                           'unitPrice'   =>    round(-abs($discount_amount), 6),
+                                                           'quantity'    =>    array ("amount" => $pocet, "unit" => 'x'),
+                                                           'vatRate'     =>    10,
+                                                       );
+                                   $medzisucet       = round($medzisucet + $discount_price, 2);
+                                   $zlava_pritomna   = true;
+                                   $celkova_usporena = abs($discount_price);
+                                   $zlava_m          = $celkova_usporena;
+                           }
                            $poznamkaInterna = $name; 
                    }  
           
