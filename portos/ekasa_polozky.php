@@ -22,11 +22,6 @@
            $zlava_percent = (float)str_replace('%', '', trim($_POST["zlava_p"]));
        }
         
-       // DEBUG: Výpis zlava_percent
-       if ($zlava_percent > 0) {
-           error_log("DEBUG: zlava_percent = " . $zlava_percent . "%");
-       }
-        
        $items = array ();
        
        for ($i = 0, $n = sizeof($order->products); $i < $n; $i++) {
@@ -197,9 +192,6 @@
                   $celkova_usporena += abs($item['price']);
               }
           }
-          error_log("DEBUG: celkova_usporena = " . $celkova_usporena . ", zlava_pritomna = true, zlava_percent = " . $zlava_percent);
-       } else {
-          error_log("DEBUG: Condition NOT met - zlava_pritomna=" . ($zlava_pritomna ? 'true' : 'false') . ", zlava_percent=" . $zlava_percent);
        }
        
        // Pridanie informatívneho textu o ušetrenej sume na koniec dokladu
