@@ -40,15 +40,28 @@ po zľave pri každej položke; položky s konečnou cenou [KC] displej označí
 nezľavniteľné).
 
 - `portos/ekasa_displej.php` – obálka nad integračnými skriptami displeja
-  (`ekasa_displej_nakup()` → `atac_pos_preview_order()`, so záložným
-  `atac_display_send_order()` pre staršiu integráciu,
+  (`ekasa_displej_nakup()` → najprv `atac_display_send_order()` z `oscommerce_edit_orders.php`
+  – rovnaké volanie ako v `admin/edit_orders.php` – a až potom `atac_pos_preview_order()`,
   `ekasa_displej_zlava()` → `atac_pos_discount_order()` / `atac_pos_preview_order()`),
 - `kasa_displej_portos.php` – AJAX endpoint, ktorý kasa volá po zadaní zľavy,
 - `posliDisplejZlavu()` v `portos/ekasa_skripty.js` – odoslanie zľavy z prehliadača.
 
-Predpoklad: v adresári `admin/includes/` sú nahraté súbory `oscommerce_bridge.php`,
-`oscommerce_edit_orders.php` a `oscommerce_pos_discount.php` s nastaveným
-`DISPLAY_API_URL` a `DISPLAY_API_KEY`. Ak tam nie sú alebo je API nedostupné,
-funkcie iba vrátia `false` a beh kasy nikdy neprerušia. Dôvod neúspechu sa zapíše
-do `$GLOBALS['ekasa_displej_stav']` a pri otvorení okna kasy s `&diag=1` sa vypíše
-priamo na stránke.
+Predpoklad: súbory `oscommerce_bridge.php`, `oscommerce_edit_orders.php` a
+`oscommerce_pos_discount.php` sú nahraté v adresári `admin/includes/` alebo priamo
+v `admin/` (hľadá sa v oboch) a majú nastavené `DISPLAY_API_URL` a `DISPLAY_API_KEY`.
+Ak tam nie sú alebo je API nedostupné, funkcie iba vrátia `false` a beh kasy nikdy
+neprerušia. Dôvod neúspechu sa zapíše do `$GLOBALS['ekasa_displej_stav']`.
+
+### Ako otestovať displej
+
+1. **HTML komentár** – otvor `kasa_okno_portos.php?oID=51668`, daj Ctrl+U (zdroj stránky)
+   a nájdi riadok `<!-- displej: … -->`. Je v ňom, ktorý integračný skript sa načítal
+   a či volanie skončilo `OK` alebo `neúspech` (prípadne že sa súbor nenašiel – vypíšu sa
+   všetky prehľadané cesty).
+2. **Diagnostika na stránke** – to isté sa vypíše aj priamo v okne kasy pri otvorení
+   `kasa_okno_portos.php?oID=51668&diag=1`.
+3. **Zľava** – v okne kasy stlač **ZADAJ ZĽAVU**, zadaj napr. 10 a v konzole prehliadača
+   (F12 → Console) sa vypíše odpoveď endpointu `kasa_displej_portos.php`, ktorá okrem
+   `success` obsahuje aj pole `stav` s dôvodom neúspechu.
+4. **Endpoint samostatne** – dá sa zavolať aj priamo (prihlásený do adminu):
+   `curl -b "osCAdminID=…" -d "oID=51668&zlava_p=10" https://…/admin/kasa_displej_portos.php`

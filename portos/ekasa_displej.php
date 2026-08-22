@@ -2,17 +2,22 @@
 //  ****************************************************************
 //  ******* zákaznícky displej (ATaC display API) ******************
 //  ****************************************************************
-//  ****** verzia 1.01 *********************************************
+//  ****** verzia 1.02 *********************************************
 //  ****************************************************************
 //  Obálka nad integračnými skriptami displeja, ktoré sú uložené
 //  v adresári admin/includes/ :
 //      - oscommerce_bridge.php       (základná komunikácia s API)
 //      - oscommerce_pos_discount.php (atac_pos_preview_order, atac_pos_discount_order)
-//      - oscommerce_edit_orders.php  (atac_display_send_order - záložná cesta)
+//      - oscommerce_edit_orders.php  (atac_display_send_order - hlavná cesta)
 //
 //  Displej pracuje v režime SHOPPING v dvoch fázach:
 //      - preview    - nákup s pôvodnými cenami (pri otvorení okna kasy),
 //      - discounted - nákup po zadaní zľavy tlačidlom ZADAJ ZĽAVU.
+//
+//  Pri otvorení okna kasy sa najprv skúsi atac_display_send_order() zo skriptu
+//  oscommerce_edit_orders.php (rovnaké volanie ako v admin/edit_orders.php)
+//  a až potom novšie atac_pos_preview_order().
+//  Skripty sa hľadajú v admin/includes/ aj priamo v admin/.
 //
 //  Ak integračné skripty na serveri nie sú, alebo displej nie je
 //  dostupný, funkcie iba vrátia false a beh kasy nikdy neprerušia.
@@ -23,6 +28,8 @@
        if (!function_exists('ekasa_displej_stav')) {
        function ekasa_displej_stav ($sprava) {
                  $GLOBALS['ekasa_displej_stav'] = $sprava;
+                 if (!isset($GLOBALS['ekasa_displej_log'])) { $GLOBALS['ekasa_displej_log'] = array(); }
+                 $GLOBALS['ekasa_displej_log'][] = $sprava;
                  if (function_exists('portos_diag')) { portos_diag('Zákaznícky displej: '.$sprava); }
        }
        }
@@ -34,9 +41,15 @@
                  if (defined('DIR_FS_ADMIN')) {
                          $cesty[] = DIR_FS_ADMIN . 'includes/' . $subor;
                          if (defined('DIR_WS_INCLUDES')) { $cesty[] = DIR_FS_ADMIN . DIR_WS_INCLUDES . $subor; }
+                         // integračné skripty môžu byť nahraté aj priamo v adresári admin/
+                         $cesty[] = DIR_FS_ADMIN . $subor;
                  }
                  $cesty[] = 'includes/' . $subor;
-                 if (defined('DIR_FS_DOCUMENT_ROOT')) { $cesty[] = DIR_FS_DOCUMENT_ROOT . 'admin/includes/' . $subor; }
+                 $cesty[] = $subor;
+                 if (defined('DIR_FS_DOCUMENT_ROOT')) {
+                         $cesty[] = DIR_FS_DOCUMENT_ROOT . 'admin/includes/' . $subor;
+                         $cesty[] = DIR_FS_DOCUMENT_ROOT . 'admin/' . $subor;
+                 }
                  return array_values(array_unique($cesty));
        }
        }
@@ -48,6 +61,7 @@
                  foreach ($cesty as $cesta) {
                          if (file_exists($cesta)) {
                                  require_once($cesta);
+                                 ekasa_displej_stav('načítaný integračný skript '.$cesta);
                                  return true;
                          }
                  }
@@ -65,20 +79,21 @@
                          return false;
                  }
 
+                 // rovnaké volanie, aké používa admin/edit_orders.php - overená cesta na displej
+                 if (ekasa_displej_nacitaj('oscommerce_edit_orders.php') AND function_exists('atac_display_send_order')) {
+                         $vysledok = atac_display_send_order($oID);
+                         ekasa_displej_stav('atac_display_send_order('.$oID.') = '.($vysledok ? 'OK' : 'neúspech'));
+                         if ($vysledok) { return $vysledok; }
+                 }
+
+                 // novšia integrácia s fázou preview (pôvodné ceny pred zľavou)
                  if (ekasa_displej_nacitaj('oscommerce_pos_discount.php') AND function_exists('atac_pos_preview_order')) {
                          $vysledok = atac_pos_preview_order($oID);
                          ekasa_displej_stav('atac_pos_preview_order('.$oID.') = '.($vysledok ? 'OK' : 'neúspech'));
                          return $vysledok;
                  }
 
-                 // záloha pre staršiu integráciu, ktorá fázu preview nepozná
-                 if (ekasa_displej_nacitaj('oscommerce_edit_orders.php') AND function_exists('atac_display_send_order')) {
-                         $vysledok = atac_display_send_order($oID);
-                         ekasa_displej_stav('atac_display_send_order('.$oID.') = '.($vysledok ? 'OK' : 'neúspech'));
-                         return $vysledok;
-                 }
-
-                 ekasa_displej_stav('nákup sa neodoslal - funkcia atac_pos_preview_order ani atac_display_send_order nie je dostupná');
+                 ekasa_displej_stav('nákup sa na displej neodoslal - žiadne z volaní atac_display_send_order / atac_pos_preview_order neuspelo');
                  return false;
        }
        }

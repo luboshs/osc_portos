@@ -31,5 +31,6 @@
 
        echo json_encode(array('success' => ($vysledok ? true : false),
                               'oID' => $oID,
-                              'zlava_p' => $zlava_percent));
+                              'zlava_p' => $zlava_percent,
+                              'stav' => isset($GLOBALS['ekasa_displej_log']) ? implode(' | ', $GLOBALS['ekasa_displej_log']) : ''));
 ?>
