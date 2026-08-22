@@ -2,7 +2,7 @@
 //  ****************************************************************
 //  ******* zákaznícky displej (ATaC display API) ******************
 //  ****************************************************************
-//  ****** verzia 1.05 *********************************************
+//  ****** verzia 1.06 *********************************************
 //  ****************************************************************
 //  Obálka nad integračnými skriptami displeja, ktoré sú uložené
 //  priamo v adresári admin/ (staršie inštalácie ich môžu mať
@@ -26,7 +26,7 @@
 //  takže pri volaní okna kasy s ?diag=1 je vidieť, prečo sa nič neposlalo.
 
        // verzia obálky displeja - v diagnostike je vidieť, či server beží aktuálny súbor
-       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.05'); }
+       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.06'); }
 
        // poznámka o poslednom volaní displeja (pre diagnostiku)
        if (!function_exists('ekasa_displej_stav')) {
@@ -220,22 +220,13 @@
        if (!function_exists('ekasa_displej_thank_you')) {
        function ekasa_displej_thank_you ($oID) {
                 $oID = (int)$oID;
+                // thank_you a idle sú v oscommerce_bridge.php
                 $volanie = ekasa_displej_volanie(
-                        'display_thank_you.php',
-                        array('atac_display_thank_you'),
-                        array($oID),
-                        'thank_you'
+                       'oscommerce_bridge.php',
+                       array('atac_display_thank_you', 'atac_display_idle'),
+                       array($oID),
+                       'thank_you'
                 );
-
-                if (!$volanie['success']) {
-                        // fallback cez oscommerce_bridge.php, ak je implementované v hlavnom bridge skripte
-                        $volanie = ekasa_displej_volanie(
-                                'oscommerce_bridge.php',
-                                array('atac_display_thank_you', 'atac_display_idle'),
-                                array($oID),
-                                'thank_you'
-                        );
-                }
 
                 return ($volanie['success'] ? true : false);
        }

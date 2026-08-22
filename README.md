@@ -75,3 +75,41 @@ neprerušia. Dôvod neúspechu sa zapíše do `$GLOBALS['ekasa_displej_stav']`.
    `success` obsahuje aj pole `stav` s dôvodom neúspechu.
 4. **Endpoint samostatne** – dá sa zavolať aj priamo (prihlásený do adminu):
    `curl -b "osCAdminID=…" -d "oID=…&zlava_p=10" https://…/admin/kasa_displej_portos.php`
+5. **QR start samostatne** – test štartu QR platby bez klikania v kase:
+   `curl -b "osCAdminID=…" -d "akcia=qr_start&oID=…&suma=12.50" https://…/admin/kasa_displej_portos.php`
+   Odpoveď JSON obsahuje `success`, `data` (s `payment_id` ak API odpovedalo) a `stav` (debug log).
+6. **QR status** – test overenia stavu platby:
+   `curl -b "osCAdminID=…" -d "akcia=qr_status&oID=…&platba_id=TEST-…" https://…/admin/kasa_displej_portos.php`
+
+### Testovanie bez reálneho ATaC displeja (stub)
+
+Súbor `portos/ekasa_bridge_test_stub.php` je testovací stub, ktorý implementuje všetky
+potrebné ATaC bridge funkcie bez reálneho displeja:
+
+```bash
+# nahradiť reálny bridge stubs-om (VÝHRADNE NA TESTOVANIE)
+cp portos/ekasa_bridge_test_stub.php /cesta/k/admin/oscommerce_bridge.php
+```
+
+Stub správanie:
+- `atac_start_qr_payment` – vráti `payment_id = TEST-{oID}-{čas}`, uloží čas štartu do `/tmp/ekasa_qr_test_state.json`
+- `atac_payment_status` – vráti `paid = true` po `QR_TEST_PAID_AFTER_SECONDS` sekundách (predvolene 15)
+- Všetky ostatné funkcie vracajú `true` a logujú do PHP error_log
+
+Nastavenie doby platby v PHP:
+```php
+define('QR_TEST_PAID_AFTER_SECONDS', 5);   // zaplatí po 5 sekundách
+define('QR_TEST_FAIL_START', true);         // simulovanie chyby štartu
+```
+
+Po testovaní **vrátiť späť originálny** `oscommerce_bridge.php` od ATaC.
+
+### Diagnostika chyby „QR platbu sa nepodarilo spustiť"
+
+Postup pri ladení:
+1. Otvor konzolu prehliadača (F12 → Console) – pri kliknutí na **QR PLATBA** sa zobrazí
+   celý log vrátane toho, či bol `oscommerce_bridge.php` nájdený a ktorá funkcia sa volala.
+2. Skontroluj, či je na serveri nahratý `admin/oscommerce_bridge.php` od ATaC.
+3. Skontroluj, či bridge má nastavené `DISPLAY_API_URL` a `DISPLAY_API_KEY`.
+4. Zavolaj QR start priamo cez curl (bod 5 vyššie) a sleduj `odpoved.stav`.
+
