@@ -20,7 +20,8 @@
        $oID = isset($_POST['oID']) ? (int)$_POST['oID'] : 0;
        $zlava_percent = isset($_POST['zlava_p']) ? ekasa_cislo(str_replace('%', '', trim($_POST['zlava_p']))) : 0;
 
-       // povolený rozsah zľavy je rovnaký ako v ekasa_polozky.php (1 - 15 %)
+       // povolený rozsah zľavy je rovnaký ako v ekasa_polozky.php (1 - 15 %),
+       // každá iná hodnota (aj 0) znamená nákup bez zľavy - fáza preview
        if ($zlava_percent < 1 OR $zlava_percent > 15) { $zlava_percent = 0; }
 
        $vysledok = false;
