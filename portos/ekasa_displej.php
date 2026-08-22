@@ -2,7 +2,7 @@
 //  ****************************************************************
 //  ******* zákaznícky displej (ATaC display API) ******************
 //  ****************************************************************
-//  ****** verzia 1.04 *********************************************
+//  ****** verzia 1.05 *********************************************
 //  ****************************************************************
 //  Obálka nad integračnými skriptami displeja, ktoré sú uložené
 //  priamo v adresári admin/ (staršie inštalácie ich môžu mať
@@ -26,7 +26,7 @@
 //  takže pri volaní okna kasy s ?diag=1 je vidieť, prečo sa nič neposlalo.
 
        // verzia obálky displeja - v diagnostike je vidieť, či server beží aktuálny súbor
-       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.04'); }
+       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.05'); }
 
        // poznámka o poslednom volaní displeja (pre diagnostiku)
        if (!function_exists('ekasa_displej_stav')) {
@@ -173,7 +173,7 @@
 
                 $volanie = ekasa_displej_volanie(
                         'oscommerce_bridge.php',
-                        array('atac_pos_qr_start', 'atac_display_qr_start', 'atac_qr_payment_start', 'atac_display_qr_payment_start'),
+                        array('atac_start_qr_payment', 'atac_display_qr_payment'),
                         array($oID, $suma),
                         'QR štart'
                 );
@@ -195,7 +195,7 @@
 
                 $volanie = ekasa_displej_volanie(
                         'oscommerce_bridge.php',
-                        array('atac_pos_qr_status', 'atac_display_qr_status', 'atac_qr_payment_status', 'atac_display_qr_payment_status'),
+                        array('atac_payment_status', 'atac_payment_check'),
                         array($oID, $platba_id),
                         'QR status'
                 );
@@ -222,7 +222,7 @@
                 $oID = (int)$oID;
                 $volanie = ekasa_displej_volanie(
                         'display_thank_you.php',
-                        array('atac_display_thank_you', 'atac_pos_thank_you', 'atac_customer_display_thank_you'),
+                        array('atac_display_thank_you'),
                         array($oID),
                         'thank_you'
                 );
@@ -231,7 +231,7 @@
                         // fallback cez oscommerce_bridge.php, ak je implementované v hlavnom bridge skripte
                         $volanie = ekasa_displej_volanie(
                                 'oscommerce_bridge.php',
-                                array('atac_display_thank_you', 'atac_pos_thank_you', 'atac_customer_display_thank_you'),
+                                array('atac_display_thank_you', 'atac_display_idle'),
                                 array($oID),
                                 'thank_you'
                         );

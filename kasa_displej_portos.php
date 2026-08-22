@@ -44,7 +44,7 @@
                        $platba_id = isset($_POST['platba_id']) ? trim($_POST['platba_id']) : '';
                        $volanie = ekasa_displej_volanie(
                                'oscommerce_bridge.php',
-                               array('atac_pos_qr_cancel', 'atac_display_qr_cancel', 'atac_qr_payment_cancel'),
+                               array('atac_cancel_qr_payment'),
                                array($oID, $platba_id),
                                'QR cancel'
                        );
