@@ -770,9 +770,9 @@
               <head>
                   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                   <title><?php echo APP_NAME.' '.APP_VERSION;?></title>
-                  <script language="javascript" src="portos/jquery-2.2.4.min.js"></script>
-                  <script language="javascript" src="portos/ekasa_skripty.js"></script>
-                  <link rel="stylesheet" type="text/css" href="portos/ekasa_portos.css">
+                  <script language="javascript" src="portos/jquery-2.2.4.min.js?v=<?php echo date('YmdHi'); ?>"></script>
+                  <script language="javascript" src="portos/ekasa_skripty.js?v=<?php echo date('YmdHi'); ?>"></script>
+                  <link rel="stylesheet" type="text/css" href="portos/ekasa_portos.css?v=<?php echo date('YmdHi'); ?>">
               </head> 
               <body> 
               
