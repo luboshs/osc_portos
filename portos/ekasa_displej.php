@@ -295,13 +295,13 @@
                         ekasa_displej_stav('FIO API curl chyba: ' . $curlError);
                         return array('success' => false, 'paid' => false, 'detail' => 'FIO API nedostupné: ' . $curlError, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
                 }
-                // uložíme timestamp len po dokončenom HTTP volaní
-                ekasa_fio_rate_limit_uloz($teraz);
                 if ($httpCode === 409) {
                         // FIO API vracia 409 ak sa volá príliš často (rate limit 30s)
                         ekasa_displej_stav('FIO API rate limit (429/409), skús neskôr');
                         return array('success' => false, 'paid' => false, 'detail' => 'FIO API rate limit, skús neskôr', 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
                 }
+                // uložíme timestamp len po dokončenom HTTP volaní, ktoré nevrátilo FIO rate-limit
+                ekasa_fio_rate_limit_uloz($teraz);
                 if ($httpCode !== 200) {
                         ekasa_displej_stav('FIO API HTTP ' . $httpCode);
                         return array('success' => false, 'paid' => false, 'detail' => 'FIO API HTTP ' . $httpCode, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
