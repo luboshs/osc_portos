@@ -215,7 +215,21 @@ function qrPlatba () {
                     if (paymeLink) {
                           var winFeatures = 'toolbar=no,scrollbars=yes,resizable=yes,width=' + screen.width + ',height=' + screen.height + ',top=0,left=0';
                           qrOknoRef = window.open(paymeLink, 'payme_qr_okno', winFeatures);
-                          qrStav("Po úhrade stlač tlačidlo 'Preveriť platbu manuálne'.");
+                          qrStav("Zaplaťte QR kódom. Po zatvorení okna overím platbu automaticky.");
+                          // Monitor zatvorenia payme okna – po zatvorení spustí prvú kontrolu za 4s
+                          qrOknoMonitor = setInterval(function () {
+                                if (!qrPlatbaPrebieha) {
+                                      clearInterval(qrOknoMonitor);
+                                      qrOknoMonitor = null;
+                                      return;
+                                }
+                                if (qrOknoRef && qrOknoRef.closed) {
+                                      clearInterval(qrOknoMonitor);
+                                      qrOknoMonitor = null;
+                                      qrStav("Okno platby zatvorené. Overujem platbu za 4 sekundy...");
+                                      fioPolling = setTimeout(fioKontrola, 4000);
+                                }
+                          }, 1000);
                     } else {
                           // Ak nie je payme link, fallback na ATaC QR status polling
                           qrPlatbaKontrola();
@@ -253,7 +267,7 @@ function fioKontrola () {
                                 return;
                           }
                           qrStav("FIO API chyba " + fioChyby + "/5, skúšam znova...");
-                          fioPolling = setTimeout(fioKontrola, cfg.interval * 1000);
+                          fioPolling = setTimeout(fioKontrola, 31 * 1000);
                           return;
                     }
                     fioChyby = 0;
@@ -303,44 +317,6 @@ function fioKontrolaManualna () {
               return false;
 }
 
-function fioDiagnostikaManualna () {
-              var oIDpole = document.getElementById("oID");
-              if (!oIDpole || !oIDpole.value) {
-                    alert("Nie je dostupné číslo objednávky (oID).");
-                    return false;
-              }
-              var sumaPredvolena = fioSuma > 0 ? fioSuma : qrSumaNaUhradu();
-              if (!sumaPredvolena || sumaPredvolena < 0) {sumaPredvolena = 0;}
-              var sumaText = prompt("Zadaj sumu pre diagnostiku FIO API (EUR):", sumaPredvolena.toFixed(2));
-              if (sumaText === null) {return false;}
-              var sumaDiag = naCislo(sumaText);
-              if (sumaDiag <= 0) {
-                    alert("Suma musí byť väčšia ako 0.");
-                    return false;
-              }
-              if (!confirm("Spustiť FIO diagnostiku?\n\noID: " + oIDpole.value + "\nSuma: " + sumaDiag.toFixed(2) + " EUR")) {return false;}
-
-              var data = "akcia=fio_status&oID=" + encodeURIComponent(oIDpole.value) + "&suma=" + encodeURIComponent(sumaDiag) + "&debug=1";
-              qrStav("Spúšťam FIO diagnostiku...");
-              qrApi(data, function (status, odpoved, raw) {
-                    var paid = (odpoved && odpoved.paid) ? "ÁNO" : "NIE";
-                    var req = (odpoved && odpoved.request_url_masked) ? odpoved.request_url_masked : "(nezistené)";
-                    var detail = (odpoved && odpoved.detail) ? (typeof odpoved.detail === "string" ? odpoved.detail : JSON.stringify(odpoved.detail)) : "(bez detailu)";
-                    var stav = (odpoved && odpoved.stav) ? odpoved.stav : "(bez stavu)";
-                    var dbg = (odpoved && odpoved.diagnostics) ? JSON.stringify(odpoved.diagnostics, null, 2) : "(bez diagnostiky)";
-                    var msg = "FIO diagnostika\n\n"
-                          + "HTTP status: " + status + "\n"
-                          + "Platba nájdená: " + paid + "\n"
-                          + "Request URL: " + req + "\n"
-                          + "Detail: " + detail + "\n"
-                          + "Stav: " + stav + "\n\n"
-                          + "Diagnostika:\n" + dbg + "\n\n"
-                          + "RAW odpoveď:\n" + (raw || "");
-                    alert(msg);
-                    qrStav("FIO diagnostika dokončená. Platba: " + paid + ".");
-              });
-              return false;
-}
 
 function qrPlatbaKontrola () {
               if (!qrPlatbaPrebieha) {return;}
