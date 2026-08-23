@@ -155,9 +155,10 @@
                 $suma = (float)$suma;
                 if ($oID <= 0 || $suma <= 0) { return ''; }
 
-                $iban = 'SK1183300000002700576798';
-                $creditorName = 'ATaC s.r.o.';
-                $message = 'POS_QR_PLATBA www.modelovazeleznica.sk';
+                $baseUrl = defined('EKASA_PAYME_BASE_URL') ? EKASA_PAYME_BASE_URL : 'https://payme.sk/2/e/PME';
+                $iban = defined('EKASA_PAYME_IBAN') ? EKASA_PAYME_IBAN : 'SK1183300000002700576798';
+                $creditorName = defined('EKASA_PAYME_CREDITOR_NAME') ? EKASA_PAYME_CREDITOR_NAME : 'ATaC s.r.o.';
+                $message = defined('EKASA_PAYME_MESSAGE') ? EKASA_PAYME_MESSAGE : 'POS_QR_PLATBA www.modelovazeleznica.sk';
                 $queryParams = array(
                         'IBAN' => $iban,
                         'AM'   => number_format((float)$suma, 2, '.', ''),
@@ -167,7 +168,7 @@
                 );
                 if ($message !== '') { $queryParams['MSG'] = $message; }
 
-                return 'https://payme.sk/2/e/PME?' . http_build_query($queryParams);
+                return $baseUrl . '?' . http_build_query($queryParams);
        }
        }
 

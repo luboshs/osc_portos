@@ -72,18 +72,22 @@ function qrStav (sprava) {
 }
 
 function nastavPaymeLinkNaPc (paymeLink) {
-              var riadok = document.getElementById('PaymeLinkTR');
-              var odkaz = document.getElementById('payme_link_pc');
-              if (!riadok || !odkaz) {return;}
-              if (paymeLink) {
-                    odkaz.href = paymeLink;
-                    odkaz.style.display = "";
-                    riadok.style.display = "";
-                    return;
+              var riadky = document.querySelectorAll('.payme_link_row');
+              var odkazy = document.querySelectorAll('.payme_link_pc');
+              if (!riadky.length || !odkazy.length) {return;}
+              for (var i = 0; i < riadky.length; i++) {
+                    var odkaz = odkazy[i];
+                    if (!odkaz) {continue;}
+                    if (paymeLink) {
+                          odkaz.href = paymeLink;
+                          odkaz.style.display = "";
+                          riadky[i].style.display = "";
+                    } else {
+                          odkaz.href = "#";
+                          odkaz.style.display = "none";
+                          riadky[i].style.display = "none";
+                    }
               }
-              odkaz.href = "#";
-              odkaz.style.display = "none";
-              riadok.style.display = "none";
 }
 
 function qrPlatbaZrus (dovod) {

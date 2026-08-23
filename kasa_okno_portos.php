@@ -1284,9 +1284,9 @@
                         echo '<td>Stav QR:</td>';
                         echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
                         echo '</tr>';
-                        echo '<tr id="PaymeLinkTR" style="display:none;">';
+                        echo '<tr class="payme_link_row" style="display:none;">';
                         echo '<td>Payme link:</td>';
-                        echo '<td colspan="2"><a id="payme_link_pc" href="#" target="_blank" rel="noopener" style="display:none;">Zobraziť Payme Link na PC</a></td>';
+                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener" style="display:none;">Zobraziť Payme Link na PC</a></td>';
                         echo '</tr>';
                       
                         echo '<tr id="HotovostTR">';
@@ -1455,9 +1455,9 @@
                         echo '<td>Stav QR:</td>';
                         echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
                         echo '</tr>';
-                        echo '<tr id="PaymeLinkTR" style="display:none;">';
+                        echo '<tr class="payme_link_row" style="display:none;">';
                         echo '<td>Payme link:</td>';
-                        echo '<td colspan="2"><a id="payme_link_pc" href="#" target="_blank" rel="noopener" style="display:none;">Zobraziť Payme Link na PC</a></td>';
+                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener" style="display:none;">Zobraziť Payme Link na PC</a></td>';
                         echo '</tr>';
            
 
