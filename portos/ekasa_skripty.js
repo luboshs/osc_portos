@@ -20,6 +20,7 @@ function qrPlatbaVynuluj (dovod) {
               if (document.getElementById('qr_platba')) {document.getElementById('qr_platba').value = 0;}
               if (document.getElementById('qr_platba_potvrdena')) {document.getElementById('qr_platba_potvrdena').value = "0";}
               if (document.getElementById('qr_platba_id')) {document.getElementById('qr_platba_id').value = "";}
+              nastavPaymeLinkNaPc("");
               qrStav("QR platba nie je aktívna.");
 }
 
@@ -68,6 +69,21 @@ var qrPlatbaChyby = 0;
 function qrStav (sprava) {
               var stav = document.getElementById('qr_status');
               if (stav) {stav.innerHTML = sprava;}
+}
+
+function nastavPaymeLinkNaPc (paymeLink) {
+              var riadok = document.getElementById('PaymeLinkTR');
+              var odkaz = document.getElementById('payme_link_pc');
+              if (!riadok || !odkaz) {return;}
+              if (paymeLink) {
+                    odkaz.href = paymeLink;
+                    odkaz.style.display = "";
+                    riadok.style.display = "";
+                    return;
+              }
+              odkaz.href = "#";
+              odkaz.style.display = "none";
+              riadok.style.display = "none";
 }
 
 function qrPlatbaZrus (dovod) {
@@ -138,6 +154,7 @@ function qrPlatba () {
                     console.log("QR start odpoveď:", status, odpoved);
                     if (status !== 200 || !odpoved || !odpoved.success) {
                           qrPlatbaZrus("start failed");
+                          nastavPaymeLinkNaPc("");
                           qrStav("QR platbu sa nepodarilo spustiť. " + (odpoved && odpoved.stav ? odpoved.stav : ""));
                           alert("QR platbu sa nepodarilo spustiť.\n" + (odpoved && odpoved.stav ? odpoved.stav : ""));
                           return;
@@ -150,6 +167,9 @@ function qrPlatba () {
                     }
                     var qrIdPole = document.getElementById('qr_platba_id');
                     if (qrIdPole) {qrIdPole.value = qrId;}
+                    var paymeLink = "";
+                    if (odpoved.data && odpoved.data.payme_link) {paymeLink = odpoved.data.payme_link;}
+                    nastavPaymeLinkNaPc(paymeLink);
                     qrStav("QR kód zobrazený na zákazníckom displeji. Čakám na potvrdenie platby...");
                     qrPlatbaKontrola();
               });
