@@ -66,6 +66,26 @@ var qrPlatbaPokusy = 0;
 var qrPlatbaMaxPokusov = 60;
 var qrPlatbaChyby = 0;
 
+var fioPolling = null;
+var fioPrebieha = false;
+var fioPokusy = 0;
+var fioMaxPokusov = 24;       // (EKASA_FIO_TIMEOUT / EKASA_FIO_POLL_INTERVAL) - prepisuje sa z data atribútov
+var fioChyby = 0;
+var fioSuma = 0;
+var qrOknoRef = null;
+var qrOknoMonitor = null;
+
+function fioGetConfig () {
+      var el = document.querySelector('.fio_config');
+      var interval = el ? parseInt(el.getAttribute('data-fio-interval'), 10) : 30;
+      var timeout  = el ? parseInt(el.getAttribute('data-fio-timeout'),   10) : 120;
+      var delay    = el ? parseInt(el.getAttribute('data-qr-window-delay'), 10) : 8;
+      if (isNaN(interval) || interval < 30) { interval = 30; }
+      if (isNaN(timeout)  || timeout  < 10) { timeout  = 120; }
+      if (isNaN(delay)    || delay    < 1)  { delay    = 8; }
+      return {interval: interval, timeout: timeout, delay: delay, maxPokusov: Math.ceil(timeout / interval)};
+}
+
 function qrStav (sprava) {
               var stavy = document.querySelectorAll('.qr_status');
               if (!stavy.length) {return;}
@@ -96,9 +116,22 @@ function qrPlatbaZrus (dovod) {
                     clearTimeout(qrPlatbaPolling);
                     qrPlatbaPolling = null;
               }
+              if (fioPolling) {
+                    clearTimeout(fioPolling);
+                    fioPolling = null;
+              }
+              if (qrOknoMonitor) {
+                    clearInterval(qrOknoMonitor);
+                    qrOknoMonitor = null;
+              }
               qrPlatbaPrebieha = false;
               qrPlatbaPokusy = 0;
               qrPlatbaChyby = 0;
+              fioPrebieha = false;
+              fioPokusy = 0;
+              fioChyby = 0;
+              fioSuma = 0;
+              qrOknoRef = null;
               if (dovod) {console.log("QR stop: " + dovod);}
 }
 
@@ -148,6 +181,7 @@ function qrPlatba () {
 
               qrPlatbaZrus();
               qrPlatbaPrebieha = true;
+              fioSuma = sumaNaUhradu;
               qrPlatbaPokusy = 0;
               qrPlatbaChyby = 0;
               qrStav("Spúšťam QR platbu, čakaj...");
@@ -175,9 +209,118 @@ function qrPlatba () {
                     var paymeLink = "";
                     if (odpoved.data && odpoved.data.payme_link) {paymeLink = odpoved.data.payme_link;}
                     nastavPaymeLinkNaPc(paymeLink);
-                    qrStav("QR kód zobrazený na zákazníckom displeji. Čakám na potvrdenie platby...");
-                    qrPlatbaKontrola();
+                    qrStav("QR kód zobrazený. Prosím, zaplaťte QR kódom. Čakám na potvrdenie...");
+
+                    // Otvoríme payme link v novom okne (celá obrazovka)
+                    if (paymeLink) {
+                          var cfg = fioGetConfig();
+                          var winFeatures = 'toolbar=no,scrollbars=yes,resizable=yes,width=' + screen.width + ',height=' + screen.height + ',top=0,left=0';
+                          qrOknoRef = window.open(paymeLink, 'payme_qr_okno', winFeatures);
+
+                          // Monitorujeme zatvorenie okna - akonáhle sa zavrie alebo uplynie delay, spustíme FIO
+                          var fioSpustene = false;
+                          var delayTimer = setTimeout(function () {
+                                if (!fioSpustene && qrPlatbaPrebieha) {
+                                      fioSpustene = true;
+                                      if (qrOknoMonitor) { clearInterval(qrOknoMonitor); qrOknoMonitor = null; }
+                                      qrStav("Overujem platbu cez FIO Bank...");
+                                      fioKontrola();
+                                }
+                          }, cfg.delay * 1000);
+
+                          qrOknoMonitor = setInterval(function () {
+                                if (!fioSpustene && qrOknoRef && qrOknoRef.closed && qrPlatbaPrebieha) {
+                                      fioSpustene = true;
+                                      clearTimeout(delayTimer);
+                                      clearInterval(qrOknoMonitor);
+                                      qrOknoMonitor = null;
+                                      qrStav("QR okno zatvorené. Overujem platbu cez FIO Bank...");
+                                      fioKontrola();
+                                }
+                          }, 500);
+                    } else {
+                          // Ak nie je payme link, fallback na ATaC QR status polling
+                          qrPlatbaKontrola();
+                    }
               });
+}
+
+function fioKontrola () {
+              if (!qrPlatbaPrebieha) {return;}
+              var cfg = fioGetConfig();
+              fioPrebieha = true;
+              fioPokusy++;
+              if (fioPokusy > cfg.maxPokusov) {
+                    qrPlatbaZrus("fio timeout");
+                    qrStav("Platba nebola overená v limite " + cfg.timeout + "s. Skontroluj stav platby manuálne.");
+                    alert("Platba nebola overená v limite " + cfg.timeout + "s.\nAk bola platba uhradená, skontroluj ju manuálne a stlač 'Preveriť platbu manuálne'.");
+                    return;
+              }
+              var oIDpole = document.getElementById("oID");
+              if (!oIDpole || !oIDpole.value) {
+                    qrPlatbaZrus("missing oid");
+                    qrStav("FIO overenie zastavené - chýba oID.");
+                    return;
+              }
+              qrStav("Overujem platbu cez FIO Bank... (" + fioPokusy + "/" + cfg.maxPokusov + ")");
+              var data = "akcia=fio_status&oID=" + encodeURIComponent(oIDpole.value) + "&suma=" + encodeURIComponent(fioSuma);
+              qrApi(data, function (status, odpoved) {
+                    if (!qrPlatbaPrebieha) {return;}
+                    if (status !== 200 || !odpoved) {
+                          fioChyby++;
+                          if (fioChyby >= 5) {
+                                qrPlatbaZrus("fio error");
+                                qrStav("Chyba komunikácie pri overovaní platby cez FIO Bank.");
+                                alert("Chyba komunikácie s FIO Bank API. Skontroluj internet a skús znova stlačiť 'Preveriť platbu manuálne'.");
+                                return;
+                          }
+                          qrStav("FIO API chyba " + fioChyby + "/5, skúšam znova...");
+                          fioPolling = setTimeout(fioKontrola, cfg.interval * 1000);
+                          return;
+                    }
+                    fioChyby = 0;
+
+                    if (odpoved.paid) {
+                          var qrSuma = fioSuma;
+                          qrPlatbaZrus("paid");
+                          karta.value = 0;
+                          hotovost.value = 0;
+                          hotovost_ma_dat.value = 0;
+                          zaokruhlenie.value = 0;
+                          vydavok.value = 'NIE';
+                          if (document.getElementById('qr_platba')) {document.getElementById('qr_platba').value = qrSuma;}
+                          if (document.getElementById('qr_platba_potvrdena')) {document.getElementById('qr_platba_potvrdena').value = "1";}
+                          qrStav("Platba QR overená cez FIO Bank. Tlačím doklad...");
+                          generujBlocek(false);
+                          return;
+                    }
+
+                    // platba zatiaľ neevidovaná, skúšame znova
+                    fioPolling = setTimeout(fioKontrola, cfg.interval * 1000);
+              });
+}
+
+function fioKontrolaManualna () {
+              var oIDpole = document.getElementById("oID");
+              if (!oIDpole || !oIDpole.value) {
+                    alert("Nie je dostupné číslo objednávky (oID).");
+                    return;
+              }
+              if (fioSuma <= 0) {
+                    fioSuma = qrSumaNaUhradu();
+              }
+              if (fioSuma <= 0) {
+                    alert("Suma pre QR platbu musí byť väčšia ako 0.");
+                    return;
+              }
+              // Ak platba nie je aktívna, aktivujeme FIO kontrolu bez QR start
+              if (!qrPlatbaPrebieha) {
+                    qrPlatbaPrebieha = true;
+                    fioPokusy = 0;
+                    fioChyby = 0;
+              }
+              qrStav("Manuálne overujem platbu cez FIO Bank...");
+              fioKontrola();
 }
 
 function qrPlatbaKontrola () {
