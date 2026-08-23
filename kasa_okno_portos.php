@@ -1403,19 +1403,19 @@
                         echo '</tr>';
 
                         echo '<tr>';
+                        echo '<td>';                                                                                                        
+            //          echo '<button type="button" onclick="window.close();" class="button_zrusit">ZAVRIEŤ OKNO</button>';
+            //          echo '<button type="button" onclick='.'"javascript:var win = window.open'."('', '_self')".';win.close();return false;"'.' class="button_zrusit">ZAVRIEŤ OKNO</button>';
+                        echo '</td>';
                         echo '<td colspan="2">';                                                                                                       
                         echo '<button type="button" onclick="location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
                         echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button> &nbsp';
                         echo '<button type="button" onclick="location.hash = '."'#QrStatusTR'".'; qrPlatba();" class="button_platba">QR <br />PLATBA</button>';
                         echo '</td>';
-                        echo '<td>';                                                                                                        
-            //          echo '<button type="button" onclick="window.close();" class="button_zrusit">ZAVRIEŤ OKNO</button>';
-            //          echo '<button type="button" onclick='.'"javascript:var win = window.open'."('', '_self')".';win.close();return false;"'.' class="button_zrusit">ZAVRIEŤ OKNO</button>';
-                        echo '</td>';
                         echo '</tr>';
                         
                         echo '<tr class="oddelovac">';
-                        echo '<td>';
+                        echo '<td><br /><br /><br />';
                         echo '</td>';
                         echo '</tr>';  
                         
