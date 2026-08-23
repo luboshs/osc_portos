@@ -1364,17 +1364,7 @@
                         echo '<td colspan="3">eKASA - Portos '.$br.'['.$systemovy_stav.']'.$hlasenie.'</td>';
                         echo '</tr>';                           
 
-                        // QR platby za dnešný deň
-                        $dnes = date('Y-m-d');
-                        $qr_dnes_q = tep_db_query("SELECT COUNT(*) as pocet, COALESCE(SUM(qr_platba), 0) as suma FROM ekasa_doklady WHERE DATE(date) = '" . tep_db_input($dnes) . "' AND qr_platba > 0");
-                        $qr_dnes = tep_db_fetch_array($qr_dnes_q);
-                        if ($qr_dnes && ($qr_dnes['pocet'] > 0)) {
-                                echo '<tr>';
-                                echo '<td colspan="3" style="background:#e8f5e9;color:#1b5e20;padding:4px 8px;font-size:13pt;">';
-                                echo '<b>QR platby dnes:</b> ' . (int)$qr_dnes['pocet'] . ' platba/platieb &nbsp;&nbsp; <b>Suma:</b> ' . number_format((float)$qr_dnes['suma'], 2, '.', ' ') . ' EUR';
-                                echo '</td>';
-                                echo '</tr>';
-                        }
+
                         echo '<tr id="prvy_riadok">';
                         echo '<td>Klient:</td>';
                         echo '<td>';
