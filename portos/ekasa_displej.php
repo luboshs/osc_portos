@@ -2,7 +2,7 @@
 //  ****************************************************************
 //  ******* zákaznícky displej (ATaC display API) ******************
 //  ****************************************************************
-//  ****** verzia 1.06 *********************************************
+//  ****** verzia 1.08 *********************************************
 //  ****************************************************************
 //  Obálka nad integračnými skriptami displeja, ktoré sú uložené
 //  priamo v adresári admin/ (staršie inštalácie ich môžu mať
@@ -26,7 +26,7 @@
 //  takže pri volaní okna kasy s ?diag=1 je vidieť, prečo sa nič neposlalo.
 
        // verzia obálky displeja - v diagnostike je vidieť, či server beží aktuálny súbor
-       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.06'); }
+       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.08'); }
 
        // poznámka o poslednom volaní displeja (pre diagnostiku)
        if (!function_exists('ekasa_displej_stav')) {
@@ -80,6 +80,21 @@
        }
        }
 
+       // pomocné serializovanie návratovej hodnoty pre diagnostický log
+       if (!function_exists('ekasa_displej_dump')) {
+       function ekasa_displej_dump ($val) {
+                if ($val === false)  { return 'false'; }
+                if ($val === null)   { return 'null'; }
+                if ($val === '')     { return '""'; }
+                if (is_array($val))  {
+                        $json = @json_encode($val, JSON_UNESCAPED_UNICODE);
+                        if ($json === false) { $json = print_r($val, true); }
+                        return substr($json, 0, 300);
+                }
+                return substr((string)$val, 0, 200);
+       }
+       }
+
        // pomocné volanie funkcie integračného skriptu - skúsi viac názvov
        if (!function_exists('ekasa_displej_volanie')) {
        function ekasa_displej_volanie ($subor, $funkcie, $argumenty, $nazov_akcie) {
@@ -89,13 +104,29 @@
                 $posledna_funkcia = null;
                 $posledny_vysledok = null;
 
+                // diagnostika konfigurácie bridge
+                if (defined('DISPLAY_API_URL')) {
+                        $url_skratena = preg_replace('#(https?://[^/]+).*#', '$1/...', DISPLAY_API_URL);
+                        ekasa_displej_stav($nazov_akcie.': DISPLAY_API_URL='.$url_skratena);
+                } else {
+                        ekasa_displej_stav($nazov_akcie.': DISPLAY_API_URL nie je definovaná');
+                }
+                if (defined('DISPLAY_API_KEY')) {
+                        $key = DISPLAY_API_KEY;
+                        $key_info = (strlen($key) > 4) ? substr($key, 0, 4).'***' : ($key === '' ? '(prázdny)' : '***');
+                        ekasa_displej_stav($nazov_akcie.': DISPLAY_API_KEY='.$key_info);
+                } else {
+                        ekasa_displej_stav($nazov_akcie.': DISPLAY_API_KEY nie je definovaná');
+                }
+
                 foreach ($funkcie as $funkcia) {
                         if (function_exists($funkcia)) {
                                 $bolo_volanie = true;
                                 $vysledok = call_user_func_array($funkcia, $argumenty);
                                 $ok = true;
                                 if ($vysledok === false || $vysledok === null || $vysledok === '' || (is_array($vysledok) && count($vysledok) === 0)) { $ok = false; }
-                                ekasa_displej_stav($nazov_akcie.': '.$funkcia.' = '.($ok ? 'OK' : 'neúspech'));
+                                $detail = $ok ? 'OK' : ('neúspech [vrátilo: '.ekasa_displej_dump($vysledok).']');
+                                ekasa_displej_stav($nazov_akcie.': '.$funkcia.' = '.$detail);
                                 if ($ok) { return array('success' => true, 'source' => $funkcia, 'result' => $vysledok); }
                                 $posledna_funkcia = $funkcia;
                                 $posledny_vysledok = $vysledok;
@@ -181,25 +212,10 @@
                         return array('success' => false, 'data' => array());
                 }
 
-                // načítanie položiek objednávky z DB (CP1250 - bridge si ich sám konvertuje do UTF-8)
-                $items = array();
-                if (function_exists('tep_db_query') && defined('TABLE_ORDERS_PRODUCTS')) {
-                        $sql = tep_db_query("SELECT products_name, products_model, products_quantity, final_price, products_tax FROM " . TABLE_ORDERS_PRODUCTS . " WHERE orders_id = " . $oID);
-                        while ($row = tep_db_fetch_array($sql)) {
-                                $items[] = array(
-                                        'name'     => $row['products_name'],
-                                        'sku'      => $row['products_model'],
-                                        'quantity' => (float)$row['products_quantity'],
-                                        'price'    => (float)$row['final_price'],
-                                        'vat'      => (float)$row['products_tax'],
-                                );
-                        }
-                }
-
                 $volanie = ekasa_displej_volanie(
                         'oscommerce_bridge.php',
                         array('atac_start_qr_payment', 'atac_display_qr_payment'),
-                        array($oID, $items, $suma),
+                        array($oID, $suma),
                         'QR štart'
                 );
 
