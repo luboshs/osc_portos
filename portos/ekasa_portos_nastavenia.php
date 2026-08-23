@@ -70,6 +70,7 @@
         define('EKASA_FIO_API_TOKEN', '');         // token z FIO internet bankingu
         define('EKASA_FIO_POLL_INTERVAL', 30);     // interval pollovania v sekundách (FIO API rate limit je 30s)
         define('EKASA_FIO_TIMEOUT', 600);          // max čas čakania na platbu v sekundách
+        define('EKASA_FIO_LOOKBACK_DAYS', 7);      // počet dní spätne pre FIO endpoint /periods/
         define('EKASA_QR_WINDOW_DELAY', 8);        // sekundy pred štartom FIO kontroly po otvorení QR okna
 
         // URL pre pokladničný doklad je 'requests/receipts/cash_register'

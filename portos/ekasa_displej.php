@@ -95,6 +95,51 @@
        }
        }
 
+       // súbor pre throttling volaní FIO API (min. 30s medzi volaniami)
+       if (!function_exists('ekasa_fio_rate_limit_file')) {
+       function ekasa_fio_rate_limit_file () {
+                $kandidati = array();
+                if (defined('DIR_FS_ADMIN')) {
+                        $kandidati[] = rtrim(DIR_FS_ADMIN, '/').'/cache/ekasa_fio_last_call.txt';
+                }
+                $kandidati[] = dirname(dirname(__FILE__)) . '/cache/ekasa_fio_last_call.txt';
+                $kandidati[] = rtrim(sys_get_temp_dir(), '/').'/ekasa_fio_last_call.txt';
+                foreach ($kandidati as $subor) {
+                        $adresar = dirname($subor);
+                        if (is_dir($adresar) && is_writable($adresar)) { return $subor; }
+                }
+                return rtrim(sys_get_temp_dir(), '/').'/ekasa_fio_last_call.txt';
+       }
+       }
+
+       if (!function_exists('ekasa_fio_rate_limit_nacitaj')) {
+       function ekasa_fio_rate_limit_nacitaj () {
+                $subor = ekasa_fio_rate_limit_file();
+                if (!file_exists($subor)) { return 0; }
+                $obsah = @file_get_contents($subor);
+                if ($obsah === false) { return 0; }
+                $ts = (int)trim($obsah);
+                if ($ts <= 0) { return 0; }
+                return $ts;
+       }
+       }
+
+       if (!function_exists('ekasa_fio_rate_limit_uloz')) {
+       function ekasa_fio_rate_limit_uloz ($ts) {
+                $subor = ekasa_fio_rate_limit_file();
+                @file_put_contents($subor, (string)((int)$ts), LOCK_EX);
+       }
+       }
+
+       if (!function_exists('ekasa_fio_sekundy_text')) {
+       function ekasa_fio_sekundy_text ($pocet) {
+                $pocet = (int)$pocet;
+                if ($pocet === 1) { return '1 sekundu'; }
+                if ($pocet >= 2 && $pocet <= 4) { return $pocet . ' sekundy'; }
+                return $pocet . ' sekúnd';
+       }
+       }
+
        // pomocné volanie funkcie integračného skriptu - skúsi viac názvov
        if (!function_exists('ekasa_displej_volanie')) {
        function ekasa_displej_volanie ($subor, $funkcie, $argumenty, $nazov_akcie, $argumenty_podla_funkcie = array()) {
@@ -202,19 +247,38 @@
                 $token = EKASA_FIO_API_TOKEN;
                 $vs = defined('EKASA_PAYME_VS') ? EKASA_PAYME_VS : '9059059050';
                 $ss = (string)$oID;
-                $url = 'https://fioapi.fio.cz/v1/rest/last/' . rawurlencode($token) . '/transactions.json';
-                $url_masked = 'https://fioapi.fio.cz/v1/rest/last/***TOKEN***/transactions.json';
+                $lookback_days = defined('EKASA_FIO_LOOKBACK_DAYS') ? max(1, (int)EKASA_FIO_LOOKBACK_DAYS) : 7;
+                $datum_od = date('Y-m-d', strtotime('-' . $lookback_days . ' days'));
+                $datum_do = date('Y-m-d');
+                $url = 'https://fioapi.fio.cz/v1/rest/periods/' . rawurlencode($token) . '/' . $datum_od . '/' . $datum_do . '/transactions.json';
+                $url_masked = 'https://fioapi.fio.cz/v1/rest/periods/***TOKEN***/' . $datum_od . '/' . $datum_do . '/transactions.json';
+                $interval = defined('EKASA_FIO_POLL_INTERVAL') ? max(1, (int)EKASA_FIO_POLL_INTERVAL) : 30;
                 $diagnostics = array(
                         'oID' => $oID,
                         'expected_vs' => $vs,
                         'expected_ss' => $ss,
                         'expected_amount' => number_format((float)$suma, 2, '.', ''),
+                        'lookback_days' => $lookback_days,
+                        'period_from' => $datum_od,
+                        'period_to' => $datum_do,
                         'http_code' => null,
                         'curl_error' => '',
                         'matched' => false,
                         'checked_transactions' => 0,
                 );
 
+                $teraz = time();
+                $posledne_volanie = ekasa_fio_rate_limit_nacitaj();
+                if ($posledne_volanie > 0) {
+                        $uplynulo = $teraz - $posledne_volanie;
+                        if ($uplynulo < $interval) {
+                                $ostava = $interval - $uplynulo;
+                                $sprava = 'Preverenie je možné spustiť najskôr za ' . ekasa_fio_sekundy_text($ostava);
+                                $diagnostics['rate_limit_wait_seconds'] = $ostava;
+                                ekasa_displej_stav($sprava);
+                                return array('success' => false, 'paid' => false, 'detail' => $sprava, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
+                        }
+                }
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -238,6 +302,8 @@
                         ekasa_displej_stav('FIO API rate limit (429/409), skús neskôr');
                         return array('success' => false, 'paid' => false, 'detail' => 'FIO API rate limit, skús neskôr', 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
                 }
+                // uložíme timestamp len po dokončenom HTTP volaní, ktoré nevrátilo FIO rate-limit
+                ekasa_fio_rate_limit_uloz($teraz);
                 if ($httpCode !== 200) {
                         ekasa_displej_stav('FIO API HTTP ' . $httpCode);
                         return array('success' => false, 'paid' => false, 'detail' => 'FIO API HTTP ' . $httpCode, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
