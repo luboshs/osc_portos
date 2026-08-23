@@ -131,6 +131,15 @@
        }
        }
 
+       if (!function_exists('ekasa_fio_sekundy_text')) {
+       function ekasa_fio_sekundy_text ($pocet) {
+                $pocet = (int)$pocet;
+                if ($pocet === 1) { return '1 sekundu'; }
+                if ($pocet >= 2 && $pocet <= 4) { return $pocet . ' sekundy'; }
+                return $pocet . ' sekúnd';
+       }
+       }
+
        // pomocné volanie funkcie integračného skriptu - skúsi viac názvov
        if (!function_exists('ekasa_displej_volanie')) {
        function ekasa_displej_volanie ($subor, $funkcie, $argumenty, $nazov_akcie, $argumenty_podla_funkcie = array()) {
@@ -238,7 +247,7 @@
                 $token = EKASA_FIO_API_TOKEN;
                 $vs = defined('EKASA_PAYME_VS') ? EKASA_PAYME_VS : '9059059050';
                 $ss = (string)$oID;
-                $datum_od = date('Y-m-01');
+                $datum_od = date('Y-m-d', strtotime('-30 days'));
                 $datum_do = date('Y-m-d');
                 $url = 'https://fioapi.fio.cz/v1/rest/periods/' . rawurlencode($token) . '/' . $datum_od . '/' . $datum_do . '/transactions.json';
                 $url_masked = 'https://fioapi.fio.cz/v1/rest/periods/***TOKEN***/' . $datum_od . '/' . $datum_do . '/transactions.json';
@@ -262,7 +271,7 @@
                         $uplynulo = $teraz - $posledne_volanie;
                         if ($uplynulo < $interval) {
                                 $ostava = $interval - $uplynulo;
-                                $sprava = 'Preverenie je možné spustiť najskôr o ' . $ostava . ' sekúnd';
+                                $sprava = 'Preverenie je možné spustiť najskôr o ' . ekasa_fio_sekundy_text($ostava);
                                 $diagnostics['rate_limit_wait_seconds'] = $ostava;
                                 ekasa_displej_stav($sprava);
                                 return array('success' => false, 'paid' => false, 'detail' => $sprava, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
