@@ -1230,11 +1230,8 @@
                         echo '</tr>';
 
                         echo '<tr>';
-                        echo '<td>';
-                        echo '';
-                        echo '</td>';
-                        echo '<td>';
-                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br /><br />';
+                        echo '<td colspan="2">';
+                        echo '<br />Pre pokračovanie sa spýtaj klienta na spôsob platby a klikni nižšie:<br />';
                         echo '</td>';
                         echo '<td>';
                         echo '';
@@ -1242,11 +1239,8 @@
                         echo '</tr>';
 
                         echo '<tr>';
-                        echo '<td>';                                                                                   
-                        echo '';
-                        echo '</td>';
-                        echo '<td>';
-                         echo '<input type="hidden" name="email" value="" id="email">'; //nemá funkciu, volá ho však javascript
+                        echo '<td colspan="2">';                                                                                 
+                        echo '<input type="hidden" name="email" value="" id="email">'; //nemá funkciu, volá ho však javascript
                         echo '<button type="button" onclick="qrPlatbaVynuluj('."'hotovosť'".'); location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
                         echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button> &nbsp';
                         echo '<button type="button" onclick="location.hash = '."'#QrStatusTR'".'; qrPlatba();" class="button_platba">QR <br />PLATBA</button>';
