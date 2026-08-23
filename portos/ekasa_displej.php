@@ -247,7 +247,8 @@
                 $token = EKASA_FIO_API_TOKEN;
                 $vs = defined('EKASA_PAYME_VS') ? EKASA_PAYME_VS : '9059059050';
                 $ss = (string)$oID;
-                $datum_od = date('Y-m-d', strtotime('-30 days'));
+                $lookback_days = defined('EKASA_FIO_LOOKBACK_DAYS') ? max(1, (int)EKASA_FIO_LOOKBACK_DAYS) : 7;
+                $datum_od = date('Y-m-d', strtotime('-' . $lookback_days . ' days'));
                 $datum_do = date('Y-m-d');
                 $url = 'https://fioapi.fio.cz/v1/rest/periods/' . rawurlencode($token) . '/' . $datum_od . '/' . $datum_do . '/transactions.json';
                 $url_masked = 'https://fioapi.fio.cz/v1/rest/periods/***TOKEN***/' . $datum_od . '/' . $datum_do . '/transactions.json';
@@ -257,6 +258,7 @@
                         'expected_vs' => $vs,
                         'expected_ss' => $ss,
                         'expected_amount' => number_format((float)$suma, 2, '.', ''),
+                        'lookback_days' => $lookback_days,
                         'period_from' => $datum_od,
                         'period_to' => $datum_do,
                         'http_code' => null,
@@ -271,7 +273,7 @@
                         $uplynulo = $teraz - $posledne_volanie;
                         if ($uplynulo < $interval) {
                                 $ostava = $interval - $uplynulo;
-                                $sprava = 'Preverenie je možné spustiť najskôr o ' . ekasa_fio_sekundy_text($ostava);
+                                $sprava = 'Preverenie je možné spustiť najskôr za ' . ekasa_fio_sekundy_text($ostava);
                                 $diagnostics['rate_limit_wait_seconds'] = $ostava;
                                 ekasa_displej_stav($sprava);
                                 return array('success' => false, 'paid' => false, 'detail' => $sprava, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
