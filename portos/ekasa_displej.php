@@ -26,7 +26,7 @@
 //  takže pri volaní okna kasy s ?diag=1 je vidieť, prečo sa nič neposlalo.
 
        // verzia obálky displeja - v diagnostike je vidieť, či server beží aktuálny súbor
-       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.09'); }
+       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.10'); }
 
        // poznámka o poslednom volaní displeja (pre diagnostiku)
        if (!function_exists('ekasa_displej_stav')) {
@@ -286,6 +286,13 @@
 
                 $data = array('oID' => $oID, 'amount' => $suma);
                 if (is_array($volanie['result'])) { $data = array_merge($data, $volanie['result']); }
+
+                // ak API vrátilo qr_id_suffix, pripojíme ho na koniec payment linku
+                if (!empty($data['qr_id_suffix']) && $payme_link !== '') {
+                        $payme_link = $payme_link . (string)$data['qr_id_suffix'];
+                        ekasa_displej_stav('payme_link rozšírený o qr_id_suffix: '.(string)$data['qr_id_suffix']);
+                }
+
                 $data['payme_link'] = $payme_link;
                 return array('success' => ($volanie['success'] ? true : false), 'data' => $data);
        }

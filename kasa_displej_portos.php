@@ -29,6 +29,20 @@
                        $odpoved['success'] = !empty($vysledok['success']);
                        $odpoved['suma'] = $suma;
                        $odpoved['data'] = isset($vysledok['data']) ? $vysledok['data'] : array();
+
+                       // tichý zápis do histórie objednávky o požiadavke QR platby
+                       if ($oID > 0) {
+                               $data_qr = $odpoved['data'];
+                               $qr_id        = isset($data_qr['qr_id'])        ? $data_qr['qr_id']        : '';
+                               $qr_id_suffix = isset($data_qr['qr_id_suffix']) ? $data_qr['qr_id_suffix'] : '';
+                               $payme_link   = isset($data_qr['payme_link'])   ? $data_qr['payme_link']   : '';
+                               $komentar_qr  = 'QR platba - požiadavka odoslaná'
+                                       . "\nSuma: " . number_format((float)$suma, 2, '.', '') . ' EUR'
+                                       . ($payme_link   !== '' ? "\nPayment link: " . $payme_link   : '')
+                                       . ($qr_id        !== '' ? "\nQR ID: "        . $qr_id        : '')
+                                       . ($qr_id_suffix !== '' ? "\nQR ID suffix: " . $qr_id_suffix : '');
+                               tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 0, '" . tep_db_input(ekasa_do_db($komentar_qr)) . "', 'Portos/QR')");
+                       }
                break;
 
                case 'qr_status':
