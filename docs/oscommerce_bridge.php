@@ -346,8 +346,14 @@ function atac_display_cart_discounted($orderId, $items, $amountBeforeDiscount, $
 /**
  * Start a QR payment for the final (already discounted) amount.
  * $orderId must be a unique document number of 1–10 digits (used as Variable Symbol).
+ *
+ * @param string $orderId             Order ID (Variable Symbol, max 10 digits)
+ * @param float  $amountToPay         Final amount the customer must pay
+ * @param float  $amountBeforeDiscount Original total before discount (0 = same as $amountToPay)
+ * @param float  $discountTotal        Discount amount (0 = no discount)
+ * @param float  $vat                  VAT amount (optional)
  */
-function atac_start_qr_payment($orderId, $items, $amountToPay, $amountBeforeDiscount = 0.0, $discountTotal = 0.0, $vat = 0.0) {
+function atac_start_qr_payment($orderId, $amountToPay, $amountBeforeDiscount = 0.0, $discountTotal = 0.0, $vat = 0.0) {
     $before = ($amountBeforeDiscount > 0) ? (float)$amountBeforeDiscount : (float)$amountToPay;
 
     return atac_post_to_display(array(
@@ -356,7 +362,6 @@ function atac_start_qr_payment($orderId, $items, $amountToPay, $amountBeforeDisc
         'amount'   => (float)$amountToPay,
         'payload'  => array(
             'phase'                  => ($discountTotal > 0) ? 'discounted' : 'preview',
-            'items'                  => atac_items_to_utf8($items),
             'amount_before_discount' => $before,
             'discount_total'         => (float)$discountTotal,
             'amount'                 => (float)$amountToPay,
@@ -475,5 +480,5 @@ function atac_wait_for_payment($orderId, $amount, $timeoutSeconds = 300, $interv
 //           'no_discount' => true, 'no_discount_reason' => 'KC polozka'),
 // );
 // atac_display_cart_discounted('20240001', $discounted, 22.50, 1.00, 21.50, 3.58);
-// atac_start_qr_payment('20240001', $discounted, 21.50, 22.50, 1.00, 3.58);
+// atac_start_qr_payment('20240001', 21.50, 22.50, 1.00, 3.58);
 // $result = atac_wait_for_payment('20240001', 21.50); // prints the receipt once PAID

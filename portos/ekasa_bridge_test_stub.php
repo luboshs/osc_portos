@@ -53,12 +53,12 @@
 
        // ---------------------------------------------------------------
        //  ŠTART QR PLATBY
-       //  Parametre: $oID (int), $suma (float)
+       //  Parametre: $oID (string|int), $suma (float), $amountBeforeDiscount (float), $discountTotal (float), $vat (float)
        //  Návratová hodnota: array('payment_id' => ..., 'amount' => ..., ...)
        //                 alebo false pri chybe
        // ---------------------------------------------------------------
        if (!function_exists('atac_start_qr_payment')) {
-       function atac_start_qr_payment ($oID, $suma) {
+       function atac_start_qr_payment ($oID, $suma, $amountBeforeDiscount = 0.0, $discountTotal = 0.0, $vat = 0.0) {
                if (QR_TEST_FAIL_START) {
                        error_log('[QR TEST STUB] atac_start_qr_payment: simulovaná chyba štartu');
                        return false;
