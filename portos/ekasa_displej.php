@@ -2,7 +2,7 @@
 //  ****************************************************************
 //  ******* zákaznícky displej (ATaC display API) ******************
 //  ****************************************************************
-//  ****** verzia 1.08 *********************************************
+//  ****** verzia 1.09 *********************************************
 //  ****************************************************************
 //  Obálka nad integračnými skriptami displeja, ktoré sú uložené
 //  priamo v adresári admin/ (staršie inštalácie ich môžu mať
@@ -26,7 +26,7 @@
 //  takže pri volaní okna kasy s ?diag=1 je vidieť, prečo sa nič neposlalo.
 
        // verzia obálky displeja - v diagnostike je vidieť, či server beží aktuálny súbor
-       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.08'); }
+       if (!defined('EKASA_DISPLEJ_VERZIA')) { define('EKASA_DISPLEJ_VERZIA', '1.09'); }
 
        // poznámka o poslednom volaní displeja (pre diagnostiku)
        if (!function_exists('ekasa_displej_stav')) {
@@ -97,7 +97,7 @@
 
        // pomocné volanie funkcie integračného skriptu - skúsi viac názvov
        if (!function_exists('ekasa_displej_volanie')) {
-       function ekasa_displej_volanie ($subor, $funkcie, $argumenty, $nazov_akcie) {
+       function ekasa_displej_volanie ($subor, $funkcie, $argumenty, $nazov_akcie, $argumenty_podla_funkcie = array()) {
                 if (!ekasa_displej_nacitaj($subor)) { return array('success' => false, 'source' => null, 'result' => null); }
                 if (!is_array($funkcie)) { $funkcie = array($funkcie); }
                 $bolo_volanie = false;
@@ -122,7 +122,13 @@
                 foreach ($funkcie as $funkcia) {
                         if (function_exists($funkcia)) {
                                 $bolo_volanie = true;
-                                $vysledok = call_user_func_array($funkcia, $argumenty);
+                                $argumenty_pre_funkciu = isset($argumenty_podla_funkcie[$funkcia]) ? $argumenty_podla_funkcie[$funkcia] : $argumenty;
+                                try {
+                                        $vysledok = call_user_func_array($funkcia, $argumenty_pre_funkciu);
+                                } catch (Throwable $e) {
+                                        ekasa_displej_stav($nazov_akcie.': '.$funkcia.' vyhodila chybu '.$e->getMessage());
+                                        continue;
+                                }
                                 $ok = true;
                                 if ($vysledok === false || $vysledok === null || $vysledok === '' || (is_array($vysledok) && count($vysledok) === 0)) { $ok = false; }
                                 $detail = $ok ? 'OK' : ('neúspech [vrátilo: '.ekasa_displej_dump($vysledok).']');
@@ -139,6 +145,57 @@
                 }
                 ekasa_displej_stav($nazov_akcie.': nenašla sa žiadna integračná funkcia ('.implode(', ', $funkcie).')');
                 return array('success' => false, 'source' => null, 'result' => null);
+       }
+       }
+
+       // zostavenie Payme linku pre QR platbu
+       if (!function_exists('ekasa_displej_payme_link')) {
+       function ekasa_displej_payme_link ($oID, $suma) {
+                $oID = (int)$oID;
+                $suma = (float)$suma;
+                if ($oID <= 0 || $suma <= 0) { return ''; }
+
+                if (!defined('EKASA_PAYME_BASE_URL') || !defined('EKASA_PAYME_IBAN') || !defined('EKASA_PAYME_CREDITOR_NAME') || !defined('EKASA_PAYME_MESSAGE')) {
+                        ekasa_displej_stav('Payme link sa nevytvoril - chýbajú konfigurácie EKASA_PAYME_*');
+                        return '';
+                }
+                $baseUrl = EKASA_PAYME_BASE_URL;
+                $iban = EKASA_PAYME_IBAN;
+                $creditorName = EKASA_PAYME_CREDITOR_NAME;
+                $message = EKASA_PAYME_MESSAGE;
+                $queryParams = array(
+                        'IBAN' => $iban,
+                        'AM'   => number_format((float)$suma, 2, '.', ''),
+                        'CC'   => 'EUR',
+                        'PI'   => (string)$oID,
+                        'CN'   => $creditorName,
+                );
+                if ($message !== '') { $queryParams['MSG'] = $message; }
+
+                return $baseUrl . '?' . http_build_query($queryParams);
+       }
+       }
+
+       // argumenty pre bridge funkciu QR štartu (payme link iba ak je na to pripravená signatúra)
+       if (!function_exists('ekasa_displej_qr_start_argumenty')) {
+       function ekasa_displej_qr_start_argumenty ($funkcia, $oID, $suma, $payme_link) {
+                $argumenty = array($oID, $suma);
+                if ($payme_link === '' || !function_exists($funkcia)) { return $argumenty; }
+                try {
+                        $ref = new ReflectionFunction($funkcia);
+                        $parametre = $ref->getParameters();
+                        foreach ($parametre as $idx => $parameter) {
+                                if ($idx < 2) { continue; }
+                                $nazov = strtolower($parameter->getName());
+                                if ($nazov === 'payme_link' || $nazov === 'paymelink' || $nazov === 'paymeurl') {
+                                        $argumenty[] = $payme_link;
+                                        break;
+                                }
+                        }
+                } catch (Throwable $e) {
+                        // bez zmeny argumentov
+                }
+                return $argumenty;
        }
        }
 
@@ -204,7 +261,7 @@
 
        // spustenie QR platby na zákazníckom displeji
        if (!function_exists('ekasa_displej_qr_start')) {
-       function ekasa_displej_qr_start ($oID, $suma) {
+       function ekasa_displej_qr_start ($oID, $suma, $payme_link = '') {
                 $oID = (int)$oID;
                 $suma = (float)$suma;
                 if ($oID <= 0 || $suma <= 0) {
@@ -212,15 +269,24 @@
                         return array('success' => false, 'data' => array());
                 }
 
+                if ($payme_link === '') { $payme_link = ekasa_displej_payme_link($oID, $suma); }
+
+                $argumenty_podla_funkcie = array(
+                        'atac_start_qr_payment' => ekasa_displej_qr_start_argumenty('atac_start_qr_payment', $oID, $suma, $payme_link),
+                        'atac_display_qr_payment' => ekasa_displej_qr_start_argumenty('atac_display_qr_payment', $oID, $suma, $payme_link),
+                );
+
                 $volanie = ekasa_displej_volanie(
                         'oscommerce_bridge.php',
                         array('atac_start_qr_payment', 'atac_display_qr_payment'),
                         array($oID, $suma),
-                        'QR štart'
+                        'QR štart',
+                        $argumenty_podla_funkcie
                 );
 
                 $data = array('oID' => $oID, 'amount' => $suma);
                 if (is_array($volanie['result'])) { $data = array_merge($data, $volanie['result']); }
+                $data['payme_link'] = $payme_link;
                 return array('success' => ($volanie['success'] ? true : false), 'data' => $data);
        }
        }

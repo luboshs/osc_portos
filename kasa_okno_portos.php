@@ -1282,9 +1282,13 @@
 
                         echo '<tr id="QrStatusTR">';
                         echo '<td>Stav QR:</td>';
-                        echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
+                        echo '<td colspan="2"><span class="qr_status">QR platba nie je aktívna.</span></td>';
                         echo '</tr>';
-                     
+                        echo '<tr class="payme_link_row" style="display:none;">';
+                        echo '<td>Payme link:</td>';
+                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener">Zobraziť Payme Link na PC</a></td>';
+                        echo '</tr>';
+                      
                         echo '<tr id="HotovostTR">';
                         echo '<td>HOTOVOS&#356;:</td>';
                         echo '<td>';
@@ -1449,7 +1453,11 @@
 
                         echo '<tr id="QrStatusTR">';
                         echo '<td>Stav QR:</td>';
-                        echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
+                        echo '<td colspan="2"><span class="qr_status">QR platba nie je aktívna.</span></td>';
+                        echo '</tr>';
+                        echo '<tr class="payme_link_row" style="display:none;">';
+                        echo '<td>Payme link:</td>';
+                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener">Zobraziť Payme Link na PC</a></td>';
                         echo '</tr>';
            
 

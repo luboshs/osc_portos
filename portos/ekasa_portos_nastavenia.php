@@ -61,6 +61,10 @@
         define('LOGO_MEMORY_ADDRESS', '1');
         define('EMAIL_PREDMET', 'Vas e-doklad k nakupu');
         define('EMAIL_TEXT', 'Dakujeme za Vas nakup, Vas doklad je v prilohe tohto emailu.');
+        define('EKASA_PAYME_BASE_URL', 'https://payme.sk/2/e/PME');
+        define('EKASA_PAYME_IBAN', 'SK1183300000002700576798');
+        define('EKASA_PAYME_CREDITOR_NAME', 'ATaC s.r.o.');
+        define('EKASA_PAYME_MESSAGE', 'POS_QR_PLATBA www.modelovazeleznica.sk');
 
         // URL pre pokladničný doklad je 'requests/receipts/cash_register'
         define('HEADER_TEXT', 'PREDAJNA MODELOVA ZELEZNICA TRNAVA'."\n");
