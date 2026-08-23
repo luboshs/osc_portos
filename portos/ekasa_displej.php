@@ -85,17 +85,27 @@
        function ekasa_displej_volanie ($subor, $funkcie, $argumenty, $nazov_akcie) {
                 if (!ekasa_displej_nacitaj($subor)) { return array('success' => false, 'source' => null, 'result' => null); }
                 if (!is_array($funkcie)) { $funkcie = array($funkcie); }
+                $bolo_volanie = false;
+                $posledna_funkcia = null;
+                $posledny_vysledok = null;
 
                 foreach ($funkcie as $funkcia) {
                         if (function_exists($funkcia)) {
+                                $bolo_volanie = true;
                                 $vysledok = call_user_func_array($funkcia, $argumenty);
                                 $ok = true;
                                 if ($vysledok === false || $vysledok === null || $vysledok === '' || (is_array($vysledok) && count($vysledok) === 0)) { $ok = false; }
                                 ekasa_displej_stav($nazov_akcie.': '.$funkcia.' = '.($ok ? 'OK' : 'neúspech'));
-                                return array('success' => $ok, 'source' => $funkcia, 'result' => $vysledok);
+                                if ($ok) { return array('success' => true, 'source' => $funkcia, 'result' => $vysledok); }
+                                $posledna_funkcia = $funkcia;
+                                $posledny_vysledok = $vysledok;
                         }
                 }
 
+                if ($bolo_volanie) {
+                        ekasa_displej_stav($nazov_akcie.': žiadna integračná funkcia neuspela');
+                        return array('success' => false, 'source' => $posledna_funkcia, 'result' => $posledny_vysledok);
+                }
                 ekasa_displej_stav($nazov_akcie.': nenašla sa žiadna integračná funkcia ('.implode(', ', $funkcie).')');
                 return array('success' => false, 'source' => null, 'result' => null);
        }
