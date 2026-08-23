@@ -45,6 +45,23 @@ V okne kasy je aj tretí spôsob platby **QR PLATBA**:
 - kasa periodicky overuje stav platby (`qr_status`),
 - po potvrdení platby kasa automaticky vytlačí doklad a odošle na displej režim `thank_you`.
 
+## Stručná informácia pre pokladníkov
+
+### Tlačidlo ZADAJ ZĽAVU
+
+- zadáva sa percento zľavy od **1 do 15 %**,
+- systém zľavu vypočíta automaticky (nie je potrebné ručne počítať sumu),
+- zľava sa počíta iba z položiek, na ktoré je možné zľavu dať,
+- položky označené **[KC]** (konečná cena) sú zo zľavy vždy vylúčené,
+- ak objednávka obsahuje iba [KC] položky, zľavu nie je možné uplatniť.
+
+### QR PLATBA
+
+- po kliknutí na **QR PLATBA** sa na zákazníckom displeji zobrazí QR kód na úhradu,
+- pokladňa priebežne kontroluje stav úhrady,
+- po potvrdení úhrady sa doklad vytlačí automaticky a displej sa prepne na poďakovanie,
+- ak zákazník zmení spôsob úhrady (napr. na hotovosť), čakajúcu QR platbu treba zrušiť.
+
 - `portos/ekasa_displej.php` – obálka nad integračnými skriptami displeja
   (`ekasa_displej_nakup()` → najprv `atac_display_send_order()` z `oscommerce_edit_orders.php`
   – rovnaké volanie ako v `admin/edit_orders.php` – a až potom `atac_pos_preview_order()`,
@@ -112,4 +129,3 @@ Postup pri ladení:
 2. Skontroluj, či je na serveri nahratý `admin/oscommerce_bridge.php` od ATaC.
 3. Skontroluj, či bridge má nastavené `DISPLAY_API_URL` a `DISPLAY_API_KEY`.
 4. Zavolaj QR start priamo cez curl (bod 5 vyššie) a sleduj `odpoved.stav`.
-
