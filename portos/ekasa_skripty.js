@@ -213,31 +213,9 @@ function qrPlatba () {
 
                     // Otvoríme payme link v novom okne (celá obrazovka)
                     if (paymeLink) {
-                          var cfg = fioGetConfig();
                           var winFeatures = 'toolbar=no,scrollbars=yes,resizable=yes,width=' + screen.width + ',height=' + screen.height + ',top=0,left=0';
                           qrOknoRef = window.open(paymeLink, 'payme_qr_okno', winFeatures);
-
-                          // Monitorujeme zatvorenie okna - akonáhle sa zavrie alebo uplynie delay, spustíme FIO
-                          var fioSpustene = false;
-                          var delayTimer = setTimeout(function () {
-                                if (!fioSpustene && qrPlatbaPrebieha) {
-                                      fioSpustene = true;
-                                      if (qrOknoMonitor) { clearInterval(qrOknoMonitor); qrOknoMonitor = null; }
-                                      qrStav("Overujem platbu cez FIO Bank...");
-                                      fioKontrola();
-                                }
-                          }, cfg.delay * 1000);
-
-                          qrOknoMonitor = setInterval(function () {
-                                if (!fioSpustene && qrOknoRef && qrOknoRef.closed && qrPlatbaPrebieha) {
-                                      fioSpustene = true;
-                                      clearTimeout(delayTimer);
-                                      clearInterval(qrOknoMonitor);
-                                      qrOknoMonitor = null;
-                                      qrStav("QR okno zatvorené. Overujem platbu cez FIO Bank...");
-                                      fioKontrola();
-                                }
-                          }, 500);
+                          qrStav("Po úhrade stlač tlačidlo 'Preveriť platbu manuálne'.");
                     } else {
                           // Ak nie je payme link, fallback na ATaC QR status polling
                           qrPlatbaKontrola();
