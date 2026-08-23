@@ -53,7 +53,7 @@
 
        // ---------------------------------------------------------------
        //  ŠTART QR PLATBY
-       //  Parametre: $oID (int), $suma (float), $amountBeforeDiscount (float), $discountTotal (float), $vat (float)
+       //  Parametre: $oID (string|int), $suma (float), $amountBeforeDiscount (float), $discountTotal (float), $vat (float)
        //  Návratová hodnota: array('payment_id' => ..., 'amount' => ..., ...)
        //                 alebo false pri chybe
        // ---------------------------------------------------------------
