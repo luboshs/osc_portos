@@ -187,7 +187,7 @@
                         foreach ($parametre as $idx => $parameter) {
                                 if ($idx < 2) { continue; }
                                 $nazov = strtolower($parameter->getName());
-                                if (strpos($nazov, 'payme') !== false || strpos($nazov, 'link') !== false || strpos($nazov, 'url') !== false) {
+                                if ($nazov === 'payme_link' || $nazov === 'paymelink' || $nazov === 'payme_url' || $nazov === 'paymeurl') {
                                         $argumenty[] = $payme_link;
                                         break;
                                 }
@@ -284,7 +284,7 @@
                         $argumenty_podla_funkcie
                 );
 
-                $data = array('oID' => $oID, 'amount' => $suma, 'payme_link' => $payme_link);
+                $data = array('oID' => $oID, 'amount' => $suma);
                 if (is_array($volanie['result'])) { $data = array_merge($data, $volanie['result']); }
                 $data['payme_link'] = $payme_link;
                 return array('success' => ($volanie['success'] ? true : false), 'data' => $data);
