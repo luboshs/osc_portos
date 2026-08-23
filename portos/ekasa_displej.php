@@ -187,7 +187,7 @@
                         foreach ($parametre as $idx => $parameter) {
                                 if ($idx < 2) { continue; }
                                 $nazov = strtolower($parameter->getName());
-                                if ($nazov === 'payme_link' || $nazov === 'paymelink' || $nazov === 'payme_url' || $nazov === 'paymeurl') {
+                                if ($nazov === 'payme_link' || $nazov === 'paymelink' || $nazov === 'paymeurl') {
                                         $argumenty[] = $payme_link;
                                         break;
                                 }
