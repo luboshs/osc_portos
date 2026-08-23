@@ -1239,13 +1239,13 @@
                         echo '</tr>';
 
                         echo '<tr>';
+                        echo '<td>';                                                                                                        
+                        echo '</td>';         
                         echo '<td colspan="2">';                                                                                 
                         echo '<input type="hidden" name="email" value="" id="email">'; //nemá funkciu, volá ho však javascript
                         echo '<button type="button" onclick="qrPlatbaVynuluj('."'hotovosť'".'); location.hash = '."'#HotovostTR'".'; document.getElementById('."'hotovost'".').focus();" class="button_platba">IBA <br />HOTOVOS&#356;</button> &nbsp';
                         echo '<button type="button" onclick="document.getElementById('."'hotovost'".').focus(); location.hash = '."'#PlatbaKartou'".'; platbaKartou();" class="button_platba">PLATBA <br />KARTOU</button> &nbsp';
-                        echo '<button type="button" onclick="location.hash = '."'#QrStatusTR'".'; qrPlatba();" class="button_platba">QR <br />PLATBA</button>';
-                        echo '</td>';
-                        echo '<td>';                                                                                                        
+                        echo '<button type="button" onclick="location.hash = '."'#QrStatusTR'".'; qrPlatba();" class="button_platba">QR <br />PLATBA</button><br /><br /><br />';
                         echo '</td>';
                         echo '</tr>';
                         
