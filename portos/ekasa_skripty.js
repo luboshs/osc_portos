@@ -304,15 +304,16 @@ function fioKontrolaManualna () {
               var oIDpole = document.getElementById("oID");
               if (!oIDpole || !oIDpole.value) {
                     alert("Nie je dostupné číslo objednávky (oID).");
-                    return;
+                    return false;
               }
               if (fioSuma <= 0) {
                     fioSuma = qrSumaNaUhradu();
               }
               if (fioSuma <= 0) {
                     alert("Suma pre QR platbu musí byť väčšia ako 0.");
-                    return;
+                    return false;
               }
+              if (!confirm("Manuálne preveriť platbu cez FIO API?\n\noID: " + oIDpole.value + "\nSuma: " + fioSuma.toFixed(2) + " EUR")) { return false; }
               // Ak platba nie je aktívna, aktivujeme FIO kontrolu bez QR start
               if (!qrPlatbaPrebieha) {
                     qrPlatbaPrebieha = true;
@@ -321,6 +322,46 @@ function fioKontrolaManualna () {
               }
               qrStav("Manuálne overujem platbu cez FIO Bank...");
               fioKontrola();
+              return false;
+}
+
+function fioDiagnostikaManualna () {
+              var oIDpole = document.getElementById("oID");
+              if (!oIDpole || !oIDpole.value) {
+                    alert("Nie je dostupné číslo objednávky (oID).");
+                    return false;
+              }
+              var sumaPredvolena = fioSuma > 0 ? fioSuma : qrSumaNaUhradu();
+              if (!sumaPredvolena || sumaPredvolena < 0) {sumaPredvolena = 0;}
+              var sumaText = prompt("Zadaj sumu pre diagnostiku FIO API (EUR):", sumaPredvolena.toFixed(2));
+              if (sumaText === null) {return false;}
+              var sumaDiag = naCislo(sumaText);
+              if (sumaDiag <= 0) {
+                    alert("Suma musí byť väčšia ako 0.");
+                    return false;
+              }
+              if (!confirm("Spustiť FIO diagnostiku?\n\noID: " + oIDpole.value + "\nSuma: " + sumaDiag.toFixed(2) + " EUR")) {return false;}
+
+              var data = "akcia=fio_status&oID=" + encodeURIComponent(oIDpole.value) + "&suma=" + encodeURIComponent(sumaDiag) + "&debug=1";
+              qrStav("Spúšťam FIO diagnostiku...");
+              qrApi(data, function (status, odpoved, raw) {
+                    var paid = (odpoved && odpoved.paid) ? "ÁNO" : "NIE";
+                    var req = (odpoved && odpoved.request_url_masked) ? odpoved.request_url_masked : "(nezistené)";
+                    var detail = (odpoved && odpoved.detail) ? (typeof odpoved.detail === "string" ? odpoved.detail : JSON.stringify(odpoved.detail)) : "(bez detailu)";
+                    var stav = (odpoved && odpoved.stav) ? odpoved.stav : "(bez stavu)";
+                    var dbg = (odpoved && odpoved.diagnostics) ? JSON.stringify(odpoved.diagnostics, null, 2) : "(bez diagnostiky)";
+                    var msg = "FIO diagnostika\n\n"
+                          + "HTTP status: " + status + "\n"
+                          + "Platba nájdená: " + paid + "\n"
+                          + "Request URL: " + req + "\n"
+                          + "Detail: " + detail + "\n"
+                          + "Stav: " + stav + "\n\n"
+                          + "Diagnostika:\n" + dbg + "\n\n"
+                          + "RAW odpoveď:\n" + (raw || "");
+                    alert(msg);
+                    qrStav("FIO diagnostika dokončená. Platba: " + paid + ".");
+              });
+              return false;
 }
 
 function qrPlatbaKontrola () {
