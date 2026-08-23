@@ -188,7 +188,7 @@
                                         break;
                                 }
                         }
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                         // bez zmeny argumentov
                 }
                 return $argumenty;

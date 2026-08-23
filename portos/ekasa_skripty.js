@@ -67,8 +67,11 @@ var qrPlatbaMaxPokusov = 60;
 var qrPlatbaChyby = 0;
 
 function qrStav (sprava) {
-              var stav = document.getElementById('qr_status');
-              if (stav) {stav.innerHTML = sprava;}
+              var stavy = document.querySelectorAll('.qr_status');
+              if (!stavy.length) {return;}
+              for (var i = 0; i < stavy.length; i++) {
+                    stavy[i].innerHTML = sprava;
+              }
 }
 
 function nastavPaymeLinkNaPc (paymeLink) {

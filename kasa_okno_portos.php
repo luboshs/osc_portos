@@ -1282,7 +1282,7 @@
 
                         echo '<tr id="QrStatusTR">';
                         echo '<td>Stav QR:</td>';
-                        echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
+                        echo '<td colspan="2"><span class="qr_status">QR platba nie je aktívna.</span></td>';
                         echo '</tr>';
                         echo '<tr class="payme_link_row" style="display:none;">';
                         echo '<td>Payme link:</td>';
@@ -1453,7 +1453,7 @@
 
                         echo '<tr id="QrStatusTR">';
                         echo '<td>Stav QR:</td>';
-                        echo '<td colspan="2"><span id="qr_status">QR platba nie je aktívna.</span></td>';
+                        echo '<td colspan="2"><span class="qr_status">QR platba nie je aktívna.</span></td>';
                         echo '</tr>';
                         echo '<tr class="payme_link_row" style="display:none;">';
                         echo '<td>Payme link:</td>';
