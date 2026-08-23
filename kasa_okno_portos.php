@@ -1287,7 +1287,7 @@
                         echo '</tr>';
                         echo '<tr class="payme_link_row" style="display:none;">';
                         echo '<td>Payme link:</td>';
-                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener">Zobraziť Payme Link na PC</a> &nbsp; <button type="button" onclick="fioKontrolaManualna();" class="button_karta" style="font-size:11pt;">Preveri&#357; platbu manuálne</button></td>';
+                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener">Zobraziť Payme Link na PC</a> &nbsp; <a href="#" onclick="return fioKontrolaManualna();" style="font-size:11pt;">Preveri&#357; platbu manuálne</a> &nbsp; <a href="#" onclick="return fioDiagnostikaManualna();" style="font-size:11pt;">Test FIO API / diagnostika</a></td>';
                         echo '</tr>';
                         echo '<input type="hidden" class="fio_config" data-fio-interval="' . (int)EKASA_FIO_POLL_INTERVAL . '" data-fio-timeout="' . (int)EKASA_FIO_TIMEOUT . '" data-qr-window-delay="' . (int)EKASA_QR_WINDOW_DELAY . '">';
 
@@ -1469,7 +1469,7 @@
                         echo '</tr>';
                         echo '<tr class="payme_link_row" style="display:none;">';
                         echo '<td>Payme link:</td>';
-                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener">Zobraziť Payme Link na PC</a> &nbsp; <button type="button" onclick="fioKontrolaManualna();" class="button_karta" style="font-size:11pt;">Preveri&#357; platbu manuálne</button></td>';
+                        echo '<td colspan="2"><a class="payme_link_pc" href="#" target="_blank" rel="noopener">Zobraziť Payme Link na PC</a> &nbsp; <a href="#" onclick="return fioKontrolaManualna();" style="font-size:11pt;">Preveri&#357; platbu manuálne</a> &nbsp; <a href="#" onclick="return fioDiagnostikaManualna();" style="font-size:11pt;">Test FIO API / diagnostika</a></td>';
                         echo '</tr>';
                         echo '<input type="hidden" class="fio_config" data-fio-interval="' . (int)EKASA_FIO_POLL_INTERVAL . '" data-fio-timeout="' . (int)EKASA_FIO_TIMEOUT . '" data-qr-window-delay="' . (int)EKASA_QR_WINDOW_DELAY . '">';
 

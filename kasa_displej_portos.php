@@ -55,10 +55,18 @@
 
                case 'fio_status':
                        $suma = isset($_POST['suma']) ? ekasa_cislo($_POST['suma']) : 0;
+                       $debug = isset($_POST['debug']) ? (int)$_POST['debug'] : 0;
                        $vysledok = ekasa_fio_over_platbu($oID, $suma);
                        $odpoved['success'] = !empty($vysledok['success']);
                        $odpoved['paid'] = !empty($vysledok['paid']);
                        $odpoved['detail'] = isset($vysledok['detail']) ? $vysledok['detail'] : '';
+                       $odpoved['request_url_masked'] = isset($vysledok['request_url_masked']) ? $vysledok['request_url_masked'] : '';
+                       if ($debug === 1) {
+                               $odpoved['diagnostics'] = isset($vysledok['diagnostics']) ? $vysledok['diagnostics'] : array();
+                               if (isset($vysledok['response_sample'])) {
+                                       $odpoved['response_sample'] = $vysledok['response_sample'];
+                               }
+                       }
                        // pri potvrdení platby zapíšeme komentar do histórie objednávky
                        if (!empty($vysledok['paid']) && $oID > 0) {
                                $komentar_fio = 'QR platba overená cez FIO Bank'

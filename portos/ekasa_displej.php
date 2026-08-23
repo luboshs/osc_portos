@@ -203,6 +203,17 @@
                 $vs = defined('EKASA_PAYME_VS') ? EKASA_PAYME_VS : '9059059050';
                 $ss = (string)$oID;
                 $url = 'https://fioapi.fio.cz/v1/rest/last/' . rawurlencode($token) . '/transactions.json';
+                $url_masked = 'https://fioapi.fio.cz/v1/rest/last/***TOKEN***/transactions.json';
+                $diagnostics = array(
+                        'oID' => $oID,
+                        'expected_vs' => $vs,
+                        'expected_ss' => $ss,
+                        'expected_amount' => number_format((float)$suma, 2, '.', ''),
+                        'http_code' => null,
+                        'curl_error' => '',
+                        'matched' => false,
+                        'checked_transactions' => 0,
+                );
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
@@ -215,25 +226,27 @@
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 $curlError = curl_error($ch);
                 curl_close($ch);
+                $diagnostics['http_code'] = (int)$httpCode;
+                $diagnostics['curl_error'] = $curlError;
 
                 if ($curlError !== '' || $response === false) {
                         ekasa_displej_stav('FIO API curl chyba: ' . $curlError);
-                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API nedostupné: ' . $curlError);
+                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API nedostupné: ' . $curlError, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
                 }
                 if ($httpCode === 409) {
                         // FIO API vracia 409 ak sa volá príliš často (rate limit 30s)
                         ekasa_displej_stav('FIO API rate limit (429/409), skús neskôr');
-                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API rate limit, skús neskôr');
+                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API rate limit, skús neskôr', 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
                 }
                 if ($httpCode !== 200) {
                         ekasa_displej_stav('FIO API HTTP ' . $httpCode);
-                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API HTTP ' . $httpCode);
+                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API HTTP ' . $httpCode, 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
                 }
 
                 $data = json_decode($response, true);
                 if (!is_array($data) || !isset($data['accountStatement']['transactionList']['transaction'])) {
                         ekasa_displej_stav('FIO API - žiadne transakcie alebo neočakávaný formát');
-                        return array('success' => true, 'paid' => false, 'detail' => 'Zatiaľ žiadne nové transakcie');
+                        return array('success' => true, 'paid' => false, 'detail' => 'Zatiaľ žiadne nové transakcie', 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics, 'response_sample' => substr((string)$response, 0, 1000));
                 }
 
                 $transakcie = $data['accountStatement']['transactionList']['transaction'];
@@ -243,6 +256,7 @@
                 $suma_rounded = round($suma, 2);
 
                 foreach ($transakcie as $t) {
+                        $diagnostics['checked_transactions']++;
                         // column1 = suma, column5 = VS, column6 = SS, column7 = uživatelská identifikácia
                         $t_suma = isset($t['column1']['value']) ? (float)$t['column1']['value'] : null;
                         $t_vs   = isset($t['column5']['value']) ? (string)$t['column5']['value'] : '';
@@ -250,12 +264,13 @@
 
                         if ($t_vs === $vs && $t_ss === $ss && $t_suma !== null && round($t_suma, 2) == $suma_rounded) {
                                 ekasa_displej_stav('FIO - platba nájdená: VS=' . $t_vs . ' SS=' . $t_ss . ' suma=' . $t_suma);
-                                return array('success' => true, 'paid' => true, 'detail' => array('vs' => $t_vs, 'ss' => $t_ss, 'suma' => $t_suma));
+                                $diagnostics['matched'] = true;
+                                return array('success' => true, 'paid' => true, 'detail' => array('vs' => $t_vs, 'ss' => $t_ss, 'suma' => $t_suma), 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
                         }
                 }
 
                 ekasa_displej_stav('FIO - platba s VS=' . $vs . ' SS=' . $ss . ' suma=' . $suma_rounded . ' nenájdená');
-                return array('success' => true, 'paid' => false, 'detail' => 'Platba zatiaľ neevidovaná');
+                return array('success' => true, 'paid' => false, 'detail' => 'Platba zatiaľ neevidovaná', 'request_url_masked' => $url_masked, 'diagnostics' => $diagnostics);
        }
        }
 
