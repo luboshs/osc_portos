@@ -155,24 +155,107 @@
                 $suma = (float)$suma;
                 if ($oID <= 0 || $suma <= 0) { return ''; }
 
-                if (!defined('EKASA_PAYME_BASE_URL') || !defined('EKASA_PAYME_IBAN') || !defined('EKASA_PAYME_CREDITOR_NAME') || !defined('EKASA_PAYME_MESSAGE')) {
+                if (!defined('EKASA_PAYME_BASE_URL') || !defined('EKASA_PAYME_IBAN') || !defined('EKASA_PAYME_CREDITOR_NAME')) {
                         ekasa_displej_stav('Payme link sa nevytvoril - chýbajú konfigurácie EKASA_PAYME_*');
                         return '';
                 }
                 $baseUrl = EKASA_PAYME_BASE_URL;
                 $iban = EKASA_PAYME_IBAN;
                 $creditorName = EKASA_PAYME_CREDITOR_NAME;
-                $message = EKASA_PAYME_MESSAGE;
+                $vs = defined('EKASA_PAYME_VS') ? EKASA_PAYME_VS : '9059059050';
+                $ks = defined('EKASA_PAYME_KS') ? EKASA_PAYME_KS : '0008';
+                $ss = (string)$oID;
+
+                // Payment Identification pre SR symboly platby
+                $pi = '/VS' . $vs . '/SS' . $ss . '/KS' . $ks;
+
+                // Správa pre príjemcu
+                $message = 'POS_QR_PLATBA modelovazeleznica.sk (' . $oID . ')';
+
                 $queryParams = array(
                         'IBAN' => $iban,
                         'AM'   => number_format((float)$suma, 2, '.', ''),
                         'CC'   => 'EUR',
-                        'PI'   => (string)$oID,
+                        'PI'   => $pi,
                         'CN'   => $creditorName,
+                        'MSG'  => $message,
                 );
-                if ($message !== '') { $queryParams['MSG'] = $message; }
 
                 return $baseUrl . '?' . http_build_query($queryParams);
+       }
+       }
+
+       // overenie platby cez FIO Banka API
+       if (!function_exists('ekasa_fio_over_platbu')) {
+       function ekasa_fio_over_platbu ($oID, $suma) {
+                $oID = (int)$oID;
+                $suma = (float)$suma;
+                if ($oID <= 0 || $suma <= 0) {
+                        return array('success' => false, 'paid' => false, 'detail' => 'Chýba oID alebo suma');
+                }
+
+                if (!defined('EKASA_FIO_API_TOKEN') || EKASA_FIO_API_TOKEN === '') {
+                        ekasa_displej_stav('FIO API token nie je nastavený');
+                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API token nie je nastavený');
+                }
+
+                $token = EKASA_FIO_API_TOKEN;
+                $vs = defined('EKASA_PAYME_VS') ? EKASA_PAYME_VS : '9059059050';
+                $ss = (string)$oID;
+                $url = 'https://fioapi.fio.cz/v1/rest/last/' . rawurlencode($token) . '/transactions.json';
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'ekasa-portos/1.0');
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
+                curl_close($ch);
+
+                if ($curlError !== '' || $response === false) {
+                        ekasa_displej_stav('FIO API curl chyba: ' . $curlError);
+                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API nedostupné: ' . $curlError);
+                }
+                if ($httpCode === 409) {
+                        // FIO API vracia 409 ak sa volá príliš často (rate limit 30s)
+                        ekasa_displej_stav('FIO API rate limit (429/409), skús neskôr');
+                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API rate limit, skús neskôr');
+                }
+                if ($httpCode !== 200) {
+                        ekasa_displej_stav('FIO API HTTP ' . $httpCode);
+                        return array('success' => false, 'paid' => false, 'detail' => 'FIO API HTTP ' . $httpCode);
+                }
+
+                $data = json_decode($response, true);
+                if (!is_array($data) || !isset($data['accountStatement']['transactionList']['transaction'])) {
+                        ekasa_displej_stav('FIO API - žiadne transakcie alebo neočakávaný formát');
+                        return array('success' => true, 'paid' => false, 'detail' => 'Zatiaľ žiadne nové transakcie');
+                }
+
+                $transakcie = $data['accountStatement']['transactionList']['transaction'];
+                // FIO vracia transakcie ako asociatívne pole stĺpcov alebo list; normalizujeme
+                if (isset($transakcie['column1'])) { $transakcie = array($transakcie); }
+
+                $suma_rounded = round($suma, 2);
+
+                foreach ($transakcie as $t) {
+                        // column1 = suma, column5 = VS, column6 = SS, column7 = uživatelská identifikácia
+                        $t_suma = isset($t['column1']['value']) ? (float)$t['column1']['value'] : null;
+                        $t_vs   = isset($t['column5']['value']) ? (string)$t['column5']['value'] : '';
+                        $t_ss   = isset($t['column6']['value']) ? (string)$t['column6']['value'] : '';
+
+                        if ($t_vs === $vs && $t_ss === $ss && $t_suma !== null && round($t_suma, 2) == $suma_rounded) {
+                                ekasa_displej_stav('FIO - platba nájdená: VS=' . $t_vs . ' SS=' . $t_ss . ' suma=' . $t_suma);
+                                return array('success' => true, 'paid' => true, 'detail' => array('vs' => $t_vs, 'ss' => $t_ss, 'suma' => $t_suma));
+                        }
+                }
+
+                ekasa_displej_stav('FIO - platba s VS=' . $vs . ' SS=' . $ss . ' suma=' . $suma_rounded . ' nenájdená');
+                return array('success' => true, 'paid' => false, 'detail' => 'Platba zatiaľ neevidovaná');
        }
        }
 

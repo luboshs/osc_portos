@@ -64,7 +64,13 @@
         define('EKASA_PAYME_BASE_URL', 'https://payme.sk/2/e/PME');
         define('EKASA_PAYME_IBAN', 'SK1183300000002700576798');
         define('EKASA_PAYME_CREDITOR_NAME', 'ATaC s.r.o.');
-        define('EKASA_PAYME_MESSAGE', 'POS_QR_PLATBA www.modelovazeleznica.sk');
+        define('EKASA_PAYME_VS', '9059059050');   // variabilný symbol - fixný
+        define('EKASA_PAYME_KS', '0008');          // konštantný symbol - fixný
+        // FIO Banka API - token pre overovanie platieb (nastaviť na produkcii)
+        define('EKASA_FIO_API_TOKEN', '');         // token z FIO internet bankingu
+        define('EKASA_FIO_POLL_INTERVAL', 30);     // interval pollovania v sekundách (FIO API rate limit je 30s)
+        define('EKASA_FIO_TIMEOUT', 120);          // max čas čakania na platbu v sekundách
+        define('EKASA_QR_WINDOW_DELAY', 8);        // sekundy pred štartom FIO kontroly po otvorení QR okna
 
         // URL pre pokladničný doklad je 'requests/receipts/cash_register'
         define('HEADER_TEXT', 'PREDAJNA MODELOVA ZELEZNICA TRNAVA'."\n");

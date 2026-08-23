@@ -53,6 +53,23 @@
                        $odpoved['data'] = isset($vysledok['data']) ? $vysledok['data'] : array();
                break;
 
+               case 'fio_status':
+                       $suma = isset($_POST['suma']) ? ekasa_cislo($_POST['suma']) : 0;
+                       $vysledok = ekasa_fio_over_platbu($oID, $suma);
+                       $odpoved['success'] = !empty($vysledok['success']);
+                       $odpoved['paid'] = !empty($vysledok['paid']);
+                       $odpoved['detail'] = isset($vysledok['detail']) ? $vysledok['detail'] : '';
+                       // pri potvrdení platby zapíšeme komentar do histórie objednávky
+                       if (!empty($vysledok['paid']) && $oID > 0) {
+                               $komentar_fio = 'QR platba overená cez FIO Bank'
+                                       . "\nVS: " . (defined('EKASA_PAYME_VS') ? EKASA_PAYME_VS : '9059059050')
+                                       . "\nSS (oID): " . $oID
+                                       . "\nSuma: " . number_format((float)$suma, 2, '.', '') . ' EUR'
+                                       . "\nDátum overenia: " . date('Y-m-d H:i:s');
+                               tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, updated_by) values ('" . (int)$oID . "', 2, now(), 0, '" . tep_db_input(ekasa_do_db($komentar_fio)) . "', 'Portos/FIO')");
+                       }
+               break;
+
                case 'qr_cancel':
                        // zrušenie QR je voliteľné - ak integračný bridge funkciu nemá, iba vrátime false
                        $platba_id = isset($_POST['platba_id']) ? trim($_POST['platba_id']) : '';
