@@ -155,10 +155,14 @@
                 $suma = (float)$suma;
                 if ($oID <= 0 || $suma <= 0) { return ''; }
 
-                $baseUrl = defined('EKASA_PAYME_BASE_URL') ? EKASA_PAYME_BASE_URL : 'https://payme.sk/2/e/PME';
-                $iban = defined('EKASA_PAYME_IBAN') ? EKASA_PAYME_IBAN : 'SK1183300000002700576798';
-                $creditorName = defined('EKASA_PAYME_CREDITOR_NAME') ? EKASA_PAYME_CREDITOR_NAME : 'ATaC s.r.o.';
-                $message = defined('EKASA_PAYME_MESSAGE') ? EKASA_PAYME_MESSAGE : 'POS_QR_PLATBA www.modelovazeleznica.sk';
+                if (!defined('EKASA_PAYME_BASE_URL') || !defined('EKASA_PAYME_IBAN') || !defined('EKASA_PAYME_CREDITOR_NAME') || !defined('EKASA_PAYME_MESSAGE')) {
+                        ekasa_displej_stav('Payme link sa nevytvoril - chýbajú konfigurácie EKASA_PAYME_*');
+                        return '';
+                }
+                $baseUrl = EKASA_PAYME_BASE_URL;
+                $iban = EKASA_PAYME_IBAN;
+                $creditorName = EKASA_PAYME_CREDITOR_NAME;
+                $message = EKASA_PAYME_MESSAGE;
                 $queryParams = array(
                         'IBAN' => $iban,
                         'AM'   => number_format((float)$suma, 2, '.', ''),
@@ -282,6 +286,7 @@
 
                 $data = array('oID' => $oID, 'amount' => $suma, 'payme_link' => $payme_link);
                 if (is_array($volanie['result'])) { $data = array_merge($data, $volanie['result']); }
+                $data['payme_link'] = $payme_link;
                 return array('success' => ($volanie['success'] ? true : false), 'data' => $data);
        }
        }

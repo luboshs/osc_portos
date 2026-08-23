@@ -83,11 +83,9 @@ function nastavPaymeLinkNaPc (paymeLink) {
                     if (!odkaz) {continue;}
                     if (paymeLink) {
                           odkaz.href = paymeLink;
-                          odkaz.style.display = "";
                           riadky[i].style.display = "";
                     } else {
                           odkaz.href = "#";
-                          odkaz.style.display = "none";
                           riadky[i].style.display = "none";
                     }
               }
